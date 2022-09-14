@@ -25,6 +25,8 @@ cp bin/targets/ rom -r
 There's a release image with ROM for this device (it can be updated in a case of new major changes in source repo).   
 Changes can be seen here: https://github.com/coolsnowwolf/lede/tree/master/target/linux/ramips/mt7621
 
+OpenWrt device wiki: https://openwrt.org/toh/xiaomi/xiaomi_redmi_router_ac2100
+
 Configuration
 ```
  - MediaTek Ralink MIPS
