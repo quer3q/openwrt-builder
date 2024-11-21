@@ -33,22 +33,19 @@ jobs:
                 make defconfig
 
             - name: Download package sources
-              run: make download V=s
+              run: make download -j$(nproc)
 
             - name: Build tools
               run: |
-                make tools/install -j$(nproc) V=s || \
-                make tools/install V=s
+                make tools/install -j$(nproc)
 
             - name: Build toolchain
               run: |
-                make toolchain/install -j$(nproc) V=s || \
-                make toolchain/install V=s
+                make toolchain/install -j$(nproc)
 
             - name: Build target images
               run: |
-                make -j$(nproc) V=s || \
-                make V=s
+                make -j$(nproc)
 
             - name: TAR output
               run: tar -cvf filogicx-images.tar bin/targets/mediatek/filogic/
