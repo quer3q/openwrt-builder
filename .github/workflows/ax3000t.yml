@@ -1,4 +1,4 @@
-name: Build Xiaomi AX3000T (
+name: Build Xiaomi AX3000T
 on: [push]
 
 jobs:
@@ -10,7 +10,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
               with:
-                repository: 'github.com/openwrt/openwrt'
+                repository: 'openwrt/openwrt'
                 ref: 'openwrt-24.10'
 
             - name: Update and install feeds
