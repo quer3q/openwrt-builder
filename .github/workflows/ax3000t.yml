@@ -24,7 +24,7 @@ jobs:
               run: |
                 echo "CONFIG_TARGET_mediatek=y\n" > .config
                 echo "CONFIG_TARGET_mediatek_filogic=y\n" >> .config
-                echo "CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y\n" >> .config
+                echo "CONFIG_TARGET_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y\n" >> .config
                 echo "CONFIG_PACKAGE_dnsmasq=m\n" >> .config
                 echo "CONFIG_PACKAGE_dnsmasq-full=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci=y\n" >> .config
