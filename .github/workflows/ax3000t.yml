@@ -1,5 +1,5 @@
 name: Build Xiaomi AX3000T
-on: [push]
+on: []
 
 jobs:
     build:
