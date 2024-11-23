@@ -1,4 +1,4 @@
-IMAGE=lede-openwrt-builder
+IMAGE=openwrt-builder
 
 .PHONY: .build
 .build:
@@ -6,4 +6,4 @@ IMAGE=lede-openwrt-builder
 
 .PHONY: run
 run: .build
-	docker run -v $(PWD)/rom:/home/builder/lede/rom -it ${IMAGE}
+	docker run -v $(PWD)/rom:/home/builder/rom -it ${IMAGE}
