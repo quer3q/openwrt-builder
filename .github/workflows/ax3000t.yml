@@ -16,7 +16,6 @@ jobs:
             - name: Prepare builder image
               run: |
                 sudo apt update -y && \
-                sudo apt full-upgrade -y && \
                 sudo apt install -y \
                 make git gcc g++ ack autoconf automake autopoint binutils bison \
                 libncurses5-dev libncursesw5-dev build-essential bzip2 ccache cmake cpio \
