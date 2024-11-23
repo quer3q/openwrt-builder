@@ -7,22 +7,14 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - uses: actions/setup-go@v5
+              with:
+                go-version: '1.23.3'
             - name: Checkout
               uses: actions/checkout@v4
               with:
                 repository: 'openwrt/openwrt'
                 ref: 'master'
-
-            - name: Prepare builder image
-              run: |
-                sudo apt update -y && \
-                sudo apt install -y \
-                make git gcc g++ ack autoconf automake autopoint binutils bison \
-                libncurses5-dev libncursesw5-dev build-essential bzip2 ccache cmake cpio \
-                unzip bzip2 wget python3 file rsync gawk xz-utils curl device-tree-compiler \
-                fastjar flex gettext gperf haveged help2man intltool libelf-dev libssl-dev \
-                libtool lrzsz mkisofs nano ninja-build p7zip patch pkgconf wget vim xxd \
-                golang
             
             - name: Update and install feeds
               run: |
