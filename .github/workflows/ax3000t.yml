@@ -19,7 +19,7 @@ jobs:
             - name: Free Disk Space (Ubuntu)
               uses: jlumbroso/free-disk-space@main
               with:
-                tool-cache: false
+                tool-cache: true
                 android: true
                 dotnet: true
                 haskell: true
@@ -27,7 +27,7 @@ jobs:
                 docker-images: true
                 swap-storage: true
                 
-            - name: Install essential packages
+            - name: Install Essential packages
               run: |
                 apt update -y && \
                 apt install -y \
