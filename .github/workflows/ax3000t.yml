@@ -29,9 +29,9 @@ jobs:
                 
             - name: Install Essential packages
               run: |
-                apt update -y && \
-                apt install -y \
-                sudo make git gcc g++ ack autoconf automake autopoint binutils bison \
+                sudo apt update -y && \
+                sudo apt install -y \
+                make git gcc g++ ack autoconf automake autopoint binutils bison \
                 libncurses5-dev libncursesw5-dev build-essential bzip2 ccache cmake cpio \
                 unzip bzip2 wget python3 file rsync gawk xz-utils curl device-tree-compiler \
                 fastjar flex gettext gperf haveged help2man intltool libelf-dev libssl-dev \
@@ -40,9 +40,9 @@ jobs:
 
             - name: Install GoLang
               run: |
-                add-apt-repository ppa:longsleep/golang-backports && \
-                apt update && \
-                apt install -y golang-go
+                sudo add-apt-repository ppa:longsleep/golang-backports && \
+                sudo apt update && \
+                sudo apt install -y golang-go
             
             - name: Update and install feeds
               run: |
