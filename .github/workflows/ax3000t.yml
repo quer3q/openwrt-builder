@@ -1,10 +1,7 @@
 name: Build Xiaomi AX3000T
-on:
-  label:
-    types:
-      - created
-  schedule:
-    - cron:  '19 3 * * 6'
+on: push
+  # schedule:
+  #   - cron:  '19 3 * * 6'
 
 jobs:
     build:
