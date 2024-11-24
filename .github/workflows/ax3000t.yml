@@ -1,4 +1,4 @@
-name: Build Xiaomi AX3000T
+name: (Draft) Build Xiaomi AX3000T
 on: [push]
 
 jobs:
@@ -35,16 +35,16 @@ jobs:
 
                 make defconfig
 
-            - name: Download package sources
-              run: make download -j$(nproc)
+            # - name: Download package sources
+            #   run: make download -j$(nproc)
 
-            - name: Build tools
-              run: |
-                make tools/install -j$(nproc)
+            # - name: Build tools
+            #   run: |
+            #     make tools/install -j$(nproc)
 
-            - name: Build toolchain
-              run: |
-                make toolchain/install -j$(nproc)
+            # - name: Build toolchain
+            #   run: |
+            #     make toolchain/install -j$(nproc)
 
             - name: Build target images
               run: |

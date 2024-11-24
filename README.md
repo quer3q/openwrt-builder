@@ -19,6 +19,7 @@ make -j$(nproc)
 ```
 cp bin/targets/ rom -r
 ```
+
 ## Xiaomi AX3000T
 ```
 echo "CONFIG_TARGET_mediatek=y\n" > .config
