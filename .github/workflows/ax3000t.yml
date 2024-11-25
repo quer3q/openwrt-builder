@@ -1,7 +1,8 @@
 name: Build Xiaomi AX3000T
-on: push
-  # schedule:
-  #   - cron:  '19 3 * * 6'
+# on: push
+on:
+  schedule:
+    - cron:  '19 3 * * 6'
 
 jobs:
     build:
