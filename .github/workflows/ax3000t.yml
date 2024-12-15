@@ -2,7 +2,7 @@ name: Build Xiaomi AX3000T
 # on: push
 on:
   schedule:
-    - cron:  '19 3 * * 6'
+    - cron:  '19 3 * * 6' # "At 03:19 on Saturday."
 
 jobs:
     build:
@@ -16,7 +16,7 @@ jobs:
                 repository: 'openwrt/openwrt'
                 ref: 'master'
                 
-            - name: Free Disk Space (Ubuntu)
+            - name: Free Disk Space
               uses: jlumbroso/free-disk-space@main
               with:
                 tool-cache: true
@@ -27,7 +27,7 @@ jobs:
                 docker-images: true
                 swap-storage: true
                 
-            - name: Install Essential packages
+            - name: Install packages
               run: |
                 sudo apt update -y && \
                 sudo apt install -y \
@@ -38,20 +38,20 @@ jobs:
                 libtool lrzsz mkisofs nano ninja-build p7zip patch pkgconf wget vim xxd \
                 software-properties-common
 
-            - name: Install GoLang
+            - name: Install Go
               run: |
                 sudo add-apt-repository ppa:longsleep/golang-backports && \
                 sudo apt update && \
                 sudo apt install -y golang-go
             
-            - name: Update and install feeds
+            - name: Configure feeds
               run: |
                 echo "src-git imm https://github.com/immortalwrt/packages" >> feeds.conf.default
                 echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
                 ./scripts/feeds update -a
                 ./scripts/feeds install -a
 
-            - name: Generate config for Xiaomi AX3000T
+            - name: Generate config
               run: |
                 echo "CONFIG_TARGET_mediatek=y\n" > .config
                 echo "CONFIG_TARGET_mediatek_filogic=y\n" >> .config
@@ -63,7 +63,7 @@ jobs:
 
                 make defconfig
 
-            # - name: Download package sources
+            # - name: Download sources
             #   run: make download -j$(nproc)
 
             # - name: Build tools
@@ -74,18 +74,18 @@ jobs:
             #   run: |
             #     make toolchain/install -j$(nproc)
 
-            - name: Build target images
+            - name: Build images
               run: |
                 make -j$(nproc)
 
             - name: TAR output
-              run: tar -cvf filogicx-images.tar bin/targets/mediatek/filogic/
+              run: tar -cvf ax3000t-images.tar bin/targets/mediatek/filogic/
 
             - name: Upload artifacts
               uses: actions/upload-artifact@main
               with:
-                name: filogic-images
-                path: filogicx-images.tar
+                name: ax3000t-images
+                path: ax3000t-images.tar
 
     release:
           name: Make a release
@@ -93,13 +93,13 @@ jobs:
           needs: build
 
           steps:
-            - name: Download the image artifacts
+            - name: Download artifacts
               uses: actions/download-artifact@main
               with:
-                name: filogic-images
+                name: ax3000t-images
 
-            - name: Extract the image artifacts
-              run: tar xf filogicx-images.tar
+            - name: Extract artifacts
+              run: tar xf ax3000t-images.tar
 
             - name: Get the current date
               run: echo "NOW=$(date +%F)" >> $GITHUB_ENV
@@ -110,6 +110,6 @@ jobs:
                 repo_token: "${{ secrets.GITHUB_TOKEN }}"
                 prerelease: true
                 title: "Xiaomi AX3000T SNAPSHOT ${{ env.NOW }}"
-                automatic_release_tag: "filogic-${{ env.NOW }}"
-                auto_generate_release_notes: true
+                automatic_release_tag: "ax3000t-${{ env.NOW }}"
+                # auto_generate_release_notes: true
                 files: bin/targets/mediatek/filogic/*
