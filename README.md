@@ -19,19 +19,6 @@ make -j$(nproc)
 ```
 cp bin/targets/ rom -r
 ```
-
-## Xiaomi AX3000T
-```
-echo "CONFIG_TARGET_mediatek=y\n" > .config
-echo "CONFIG_TARGET_mediatek_filogic=y\n" >> .config
-echo "CONFIG_TARGET_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y\n" >> .config
-echo "CONFIG_PACKAGE_dnsmasq=m\n" >> .config
-echo "CONFIG_PACKAGE_dnsmasq-full=y\n" >> .config
-echo "CONFIG_PACKAGE_luci=y\n" >> .config
-echo "CONFIG_PACKAGE_luci-app-passwall2=y\n" >> .config
-
-make defconfig
-```
 ## Install passwall2
 ```
 echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
