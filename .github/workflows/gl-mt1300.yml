@@ -2,7 +2,7 @@ name: Build GL.iNet GL-MT1300
 # on: push
 on:
   schedule:
-    - cron:  '03 1 */14 * *' # "At 01:03 on every 14th day-of-month."
+    - cron:  '45 1 8-14,22-28 * 6'
 
 jobs:
     build:
