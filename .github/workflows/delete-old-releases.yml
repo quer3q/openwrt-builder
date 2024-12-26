@@ -8,10 +8,13 @@ jobs:
         name: Delete old releases
         runs-on: ubuntu-latest
         steps:
-          - uses: actions/checkout@main
-          - uses: Nats-ji/delete-old-releases@v1.0.1
-            with:
-              token: ${{ secrets.GITHUB_TOKEN }}
-              keep-count: 4
-              keep-old-minor-releases: false
-              include-prerelease: true
+            - uses: sgpublic/delete-release-action@master
+              with:
+                release-drop: true
+                release-keep-count: 2
+                release-drop-tag: true
+                pre-release-drop: true
+                pre-release-keep-count: 2
+                pre-release-drop-tag: true
+              env:
+                GITHUB_TOKEN: ${{ secrets.TOKEN }}
