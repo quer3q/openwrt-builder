@@ -8,7 +8,7 @@ jobs:
         name: Delete old releases
         runs-on: ubuntu-latest
         steps:
-          - uses: actions/checkout@latest
+          - uses: actions/checkout@main
           - uses: Nats-ji/delete-old-releases@v1.0.1
             with:
               token: ${{ secrets.GITHUB_TOKEN }}
