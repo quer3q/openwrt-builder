@@ -9,7 +9,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
           - uses: actions/checkout@latest
-          - uses: Nats-ji/delete-old-releases@latest
+          - uses: Nats-ji/delete-old-releases@v1.0.1
             with:
               token: ${{ secrets.GITHUB_TOKEN }}
               keep-count: 4
