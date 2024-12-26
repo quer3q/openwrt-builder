@@ -8,7 +8,7 @@ jobs:
         name: Delete old releases
         runs-on: ubuntu-latest
         steps:
-            - uses: sgpublic/delete-release-action@master
+            - uses: sgpublic/delete-release-action@v1.2
               with:
                 release-drop: true
                 release-keep-count: 2
