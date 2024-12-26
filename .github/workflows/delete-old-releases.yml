@@ -9,6 +9,8 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: sgpublic/delete-release-action@v1.2
+              env:
+                GITHUB_TOKEN: ${{ secrets.TOKEN }}
               with:
                 release-drop: true
                 release-keep-count: 2
@@ -16,5 +18,3 @@ jobs:
                 pre-release-drop: true
                 pre-release-keep-count: 2
                 pre-release-drop-tag: true
-              env:
-                GITHUB_TOKEN: ${{ secrets.TOKEN }}
