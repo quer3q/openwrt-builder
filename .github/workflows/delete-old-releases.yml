@@ -1,7 +1,7 @@
-on: push
-# on:
-#   schedule:
-#     - cron:  '01 0 * * 1'
+# on: push
+on:
+  schedule:
+    - cron:  '01 0 */3 * *'
 
 jobs:
     delete-old-releases:
