@@ -1,6 +1,7 @@
 name: Build Xiaomi AX3000T
-# on: push
+
 on:
+  workflow_dispatch:  # Can run manually
   schedule:
     - cron:  '12 0 * * 6'
 
