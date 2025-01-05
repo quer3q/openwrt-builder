@@ -1,6 +1,7 @@
 name: Build GL.iNet GL-MT1300
-# on: push
+
 on:
+  workflow_dispatch:  # Can run manually
   schedule:
     - cron:  '02 3 * * 6'
 
