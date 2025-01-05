@@ -108,7 +108,7 @@ jobs:
             - name: Create a release
               uses: "marvinpinto/action-automatic-releases@latest"
               with:
-                repo_token: "${{ secrets.GITHUB_TOKEN }}"
+                repo_token: "${{ github.token }}"
                 prerelease: false
                 title: "GL.iNet GL-MT1300 v24.10"
                 automatic_release_tag: "gl-mt1300-${{ env.NOW }}"
