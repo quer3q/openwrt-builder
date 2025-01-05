@@ -1,7 +1,7 @@
 # on: push
 on:
   schedule:
-    - cron:  '01 0 */3 * *'
+    - cron:  '21 21 * * *'
 
 jobs:
     delete-old-releases:
@@ -11,10 +11,10 @@ jobs:
             - uses: sgpublic/delete-release-action@v1.2
               with:
                 release-drop: true
-                release-keep-count: 2
+                release-keep-count: 1
                 release-drop-tag: true
                 pre-release-drop: true
-                pre-release-keep-count: 2
+                pre-release-keep-count: 1
                 pre-release-drop-tag: true
               env:
                 GITHUB_TOKEN: ${{ github.token }}
