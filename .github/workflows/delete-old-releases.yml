@@ -1,7 +1,7 @@
 name: Cleanup old releases
 
-# on: push
 on:
+  workflow_dispatch:  # Can run manually
   schedule:
     - cron:  '21 21 * * *'
 
