@@ -110,7 +110,7 @@ jobs:
               uses: "marvinpinto/action-automatic-releases@latest"
               with:
                 repo_token: "${{ github.token }}"
-                prerelease: false
+                prerelease: true
                 title: "Xiaomi AX3000T SNAPSHOT"
                 automatic_release_tag: "ax3000t-${{ env.NOW }}"
                 # auto_generate_release_notes: true
