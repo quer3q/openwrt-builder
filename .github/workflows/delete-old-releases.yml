@@ -13,10 +13,10 @@ jobs:
             - uses: sgpublic/delete-release-action@master
               with:
                 release-drop: true
-                release-keep-count: 0
+                release-keep-count: 1
                 release-drop-tag: true
                 pre-release-drop: true
-                pre-release-keep-count: 3
+                pre-release-keep-count: 1
                 pre-release-drop-tag: true
               env:
                 GITHUB_TOKEN: ${{ github.token }}
