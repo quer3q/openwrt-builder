@@ -62,6 +62,7 @@ jobs:
                 echo "CONFIG_PACKAGE_luci=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci-app-passwall2=y\n" >> .config
                 echo "CONFIG_PACKAGE_dnsproxy=y\n" >> .config
+                echo "CONFIG_PACKAGE_zram-swap=y\n" >> .config
 
                 make defconfig
 
