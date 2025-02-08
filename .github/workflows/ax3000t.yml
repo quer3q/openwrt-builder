@@ -3,7 +3,7 @@ name: Build Xiaomi AX3000T
 on:
   workflow_dispatch:  # Can run manually
   schedule:
-    - cron:  '12 0 * * 6'
+    - cron:  '05 1 7,21 * *'
 
 jobs:
     build:
@@ -48,7 +48,7 @@ jobs:
             - name: Configure feeds
               run: |
                 echo "src-git imm https://github.com/immortalwrt/packages" >> feeds.conf.default
-                echo "src-git pw https://github.com/xiaorouji/openwrt-passwall" >> feeds.conf.default
+                echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
                 ./scripts/feeds update -a
                 ./scripts/feeds install -a
 
@@ -60,7 +60,8 @@ jobs:
                 echo "CONFIG_PACKAGE_dnsmasq=m\n" >> .config
                 echo "CONFIG_PACKAGE_dnsmasq-full=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci=y\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall=y\n" >> .config
+                echo "CONFIG_PACKAGE_luci-app-passwall2=y\n" >> .config
+                echo "CONFIG_PACKAGE_dnsproxy=y\n" >> .config
 
                 make defconfig
 
