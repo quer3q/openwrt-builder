@@ -47,8 +47,6 @@ jobs:
             
             - name: Configure feeds
               run: |
-                echo "src-git imm https://github.com/immortalwrt/packages" >> feeds.conf.default
-                echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
                 ./scripts/feeds update -a
                 ./scripts/feeds install -a
 
@@ -57,10 +55,7 @@ jobs:
                 echo "CONFIG_TARGET_ramips=y\n" > .config
                 echo "CONFIG_TARGET_ramips_mt7621=y\n" >> .config
                 echo "CONFIG_TARGET_ramips_mt7621_DEVICE_glinet_gl-mt1300=y\n" >> .config
-                echo "CONFIG_PACKAGE_dnsmasq=m\n" >> .config
-                echo "CONFIG_PACKAGE_dnsmasq-full=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci=y\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2=y\n" >> .config
                 echo "CONFIG_PACKAGE_dnsproxy=y\n" >> .config
 
                 make defconfig
