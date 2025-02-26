@@ -1,0 +1,117 @@
+name: Build NanoPI R3S
+
+on:
+  workflow_dispatch:  # Can run manually
+  schedule:
+    - cron:  '03 1 7,24 * *'
+
+jobs:
+    build:
+        name: NanoPI R3S
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@main
+              with:
+                repository: 'openwrt/openwrt'
+                ref: 'openwrt-24.10'
+                
+            - name: Free Disk Space
+              uses: jlumbroso/free-disk-space@main
+              with:
+                tool-cache: true
+                android: true
+                dotnet: true
+                haskell: true
+                large-packages: true
+                docker-images: true
+                swap-storage: true
+                
+            - name: Install packages
+              run: |
+                sudo apt update -y && \
+                sudo apt install -y \
+                make git gcc g++ ack autoconf automake autopoint binutils bison \
+                libncurses5-dev libncursesw5-dev build-essential bzip2 ccache cmake cpio \
+                unzip bzip2 wget python3 file rsync gawk xz-utils curl device-tree-compiler \
+                fastjar flex gettext gperf haveged help2man intltool libelf-dev libssl-dev \
+                libtool lrzsz mkisofs nano ninja-build p7zip patch pkgconf wget vim xxd \
+                software-properties-common
+
+            - name: Install Go
+              run: |
+                sudo add-apt-repository ppa:longsleep/golang-backports && \
+                sudo apt update && \
+                sudo apt install -y golang-go
+            
+            - name: Configure feeds
+              run: |
+                echo "src-git imm https://github.com/immortalwrt/packages" >> feeds.conf.default
+                echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a
+
+            - name: Generate config
+              run: |
+                echo "CONFIG_TARGET_rockchip=y\n" > .config
+                echo "CONFIG_TARGET_rockchip_armv8=y\n" >> .config
+                echo "CONFIG_TARGET_rockchip_armv8_DEVICE_friendlyarm_nanopi-r3s=y\n" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq=m\n" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq-full=y\n" >> .config
+                echo "CONFIG_PACKAGE_luci=y\n" >> .config
+                echo "CONFIG_PACKAGE_luci-app-passwall2=y\n" >> .config
+                echo "CONFIG_PACKAGE_adguardhome=y\n" >> .config
+
+                make defconfig
+
+            # - name: Download sources
+            #   run: make download -j$(nproc)
+
+            # - name: Build tools
+            #   run: |
+            #     make tools/install -j$(nproc)
+
+            # - name: Build toolchain
+            #   run: |
+            #     make toolchain/install -j$(nproc)
+
+            - name: Build images
+              run: |
+                make -j$(nproc)
+
+            - name: TAR output
+              run: tar -cvf nanopi-r3s-images.tar bin/targets/rockchip/
+
+            - name: Upload artifacts
+              uses: actions/upload-artifact@main
+              with:
+                name: nanopi-r3s-images
+                path: nanopi-r3s-images.tar
+
+    release:
+          name: Make a release
+          runs-on: ubuntu-latest
+          needs: build
+
+          steps:
+            - name: Download artifacts
+              uses: actions/download-artifact@main
+              with:
+                name: nanopi-r3s-images
+
+            - name: Extract artifacts
+              run: tar xf nanopi-r3s-images.tar
+
+            - name: Get the current date
+              run: echo "NOW=$(date +%F)" >> $GITHUB_ENV
+
+            - name: Create a release
+              uses: "marvinpinto/action-automatic-releases@latest"
+              with:
+                repo_token: "${{ github.token }}"
+                prerelease: false
+                title: "NanoPI R3S v24.10"
+                automatic_release_tag: "r3s-${{ env.NOW }}"
+                # auto_generate_release_notes: true
+                files: bin/targets/rockchip/*
