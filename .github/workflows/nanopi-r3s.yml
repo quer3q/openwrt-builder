@@ -2,8 +2,8 @@ name: Build NanoPI R3S
 
 on:
   workflow_dispatch:  # Can run manually
-  schedule:
-    - cron:  '03 1 7,24 * *'
+  # schedule:
+  #   - cron:  '03 1 7,24 * *'
 
 jobs:
     build:
@@ -58,7 +58,6 @@ jobs:
                 echo "CONFIG_TARGET_rockchip=y\n" > .config
                 echo "CONFIG_TARGET_rockchip_armv8=y\n" >> .config
                 echo "CONFIG_TARGET_rockchip_armv8_DEVICE_friendlyarm_nanopi-r3s=y\n" >> .config
-                echo "CONFIG_TARGET_ROOTFS_PARTSIZE=31000\n" >> .config
                 echo "CONFIG_PACKAGE_dnsmasq=m\n" >> .config
                 echo "CONFIG_PACKAGE_dnsmasq-full=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci=y\n" >> .config
@@ -66,6 +65,9 @@ jobs:
                 echo "CONFIG_PACKAGE_adguardhome=y\n" >> .config
 
                 make defconfig
+
+                sed -i 's/CONFIG_TARGET_KERNEL_PARTSIZE=16/CONFIG_TARGET_KERNEL_PARTSIZE=32/g' .config
+                sed -i 's/CONFIG_TARGET_ROOTFS_PARTSIZE=104/CONFIG_TARGET_ROOTFS_PARTSIZE=512/g' .config
 
             - name: Download sources
               run: make download -j$(nproc)
