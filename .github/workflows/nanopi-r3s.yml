@@ -63,6 +63,9 @@ jobs:
                 echo "CONFIG_PACKAGE_luci=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci-app-passwall2=y\n" >> .config
                 echo "CONFIG_PACKAGE_adguardhome=y\n" >> .config
+                echo "CONFIG_PACKAGE_parted=y\n" >> .config
+                echo "CONFIG_PACKAGE_losetup=y\n" >> .config
+                echo "CONFIG_PACKAGE_resize2fs=y\n" >> .config
 
                 make defconfig
 
