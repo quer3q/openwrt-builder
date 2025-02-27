@@ -37,7 +37,8 @@ jobs:
                 unzip bzip2 wget python3 file rsync gawk xz-utils curl device-tree-compiler \
                 fastjar flex gettext gperf haveged help2man intltool libelf-dev libssl-dev \
                 libtool lrzsz mkisofs nano ninja-build p7zip patch pkgconf wget vim xxd \
-                software-properties-common python3-pyelftools
+                software-properties-common python3-pyelftools python3-setuptools swig \
+                python3-dev
 
             - name: Install Go
               run: |
@@ -57,31 +58,29 @@ jobs:
                 echo "CONFIG_TARGET_rockchip=y\n" > .config
                 echo "CONFIG_TARGET_rockchip_armv8=y\n" >> .config
                 echo "CONFIG_TARGET_rockchip_armv8_DEVICE_friendlyarm_nanopi-r3s=y\n" >> .config
+                echo "CONFIG_TARGET_ROOTFS_PARTSIZE=31000\n" >> .config
                 echo "CONFIG_PACKAGE_dnsmasq=m\n" >> .config
                 echo "CONFIG_PACKAGE_dnsmasq-full=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci-app-passwall2=y\n" >> .config
-                # echo "CONFIG_PACKAGE_adguardhome=y\n" >> .config
+                echo "CONFIG_PACKAGE_adguardhome=y\n" >> .config
 
                 make defconfig
 
-            # - name: Download sources
-            #   run: make download -j$(nproc)
+            - name: Download sources
+              run: make download -j$(nproc)
 
-            # - name: Build tools
-            #   run: |
-            #     make tools/install -j$(nproc)
+            - name: Build tools
+              run: make tools/install -j$(nproc)
 
-            # - name: Build toolchain
-            #   run: |
-            #     make toolchain/install -j$(nproc)
+            - name: Build toolchain
+              run: make toolchain/install -j$(nproc)
 
             - name: Build images
-              run: |
-                make -j$(nproc)
+              run: make -j$(nproc)
 
             - name: TAR output
-              run: tar -cvf nanopi-r3s-images.tar bin/targets/rockchip/
+              run: tar -cvf nanopi-r3s-images.tar bin/targets/rockchip/armv8
 
             - name: Upload artifacts
               uses: actions/upload-artifact@main
@@ -114,4 +113,4 @@ jobs:
                 title: "NanoPI R3S v24.10"
                 automatic_release_tag: "r3s-${{ env.NOW }}"
                 # auto_generate_release_notes: true
-                files: bin/targets/rockchip/*
+                files: bin/targets/rockchip/armv8/*
