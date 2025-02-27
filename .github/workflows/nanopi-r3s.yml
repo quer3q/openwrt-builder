@@ -61,7 +61,7 @@ jobs:
                 echo "CONFIG_PACKAGE_dnsmasq-full=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci-app-passwall2=y\n" >> .config
-                echo "CONFIG_PACKAGE_adguardhome=y\n" >> .config
+                # echo "CONFIG_PACKAGE_adguardhome=y\n" >> .config
 
                 make defconfig
 
