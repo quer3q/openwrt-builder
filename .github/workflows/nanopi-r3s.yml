@@ -1,4 +1,4 @@
-name: Build NanoPI R3S
+name: NanoPI R3S
 
 on:
   workflow_dispatch:  # Can run manually
