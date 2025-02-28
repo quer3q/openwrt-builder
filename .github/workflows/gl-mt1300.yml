@@ -1,13 +1,13 @@
-name: Build GL.iNet GL-MT1300
+name: GL.iNet GL-MT1300
 
 on:
   workflow_dispatch:  # Can run manually
   schedule:
-    - cron:  '02 3 9,28 * *'
+    - cron:  '01 13 */20 * *'
 
 jobs:
     build:
-        name: GL.iNet GL-MT1300
+        name: Build
         runs-on: ubuntu-latest
 
         steps:
@@ -38,42 +38,27 @@ jobs:
                 fastjar flex gettext gperf haveged help2man intltool libelf-dev libssl-dev \
                 libtool lrzsz mkisofs nano ninja-build p7zip patch pkgconf wget vim xxd \
                 software-properties-common
-
-            - name: Install Go
-              run: |
-                sudo add-apt-repository ppa:longsleep/golang-backports && \
-                sudo apt update && \
-                sudo apt install -y golang-go
             
-            - name: Configure feeds
-              run: |
-                ./scripts/feeds update -a
-                ./scripts/feeds install -a
-
             - name: Generate config
               run: |
                 echo "CONFIG_TARGET_ramips=y\n" > .config
                 echo "CONFIG_TARGET_ramips_mt7621=y\n" >> .config
                 echo "CONFIG_TARGET_ramips_mt7621_DEVICE_glinet_gl-mt1300=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci=y\n" >> .config
-                echo "CONFIG_PACKAGE_dnsproxy=y\n" >> .config
 
                 make defconfig
 
-            # - name: Download sources
-            #   run: make download -j$(nproc)
+            - name: Download sources
+              run: make download -j$(nproc)
 
-            # - name: Build tools
-            #   run: |
-            #     make tools/install -j$(nproc)
+            - name: Build tools
+              run: make tools/install -j$(nproc)
 
-            # - name: Build toolchain
-            #   run: |
-            #     make toolchain/install -j$(nproc)
+            - name: Build toolchain
+              run: make toolchain/install -j$(nproc)
 
             - name: Build images
-              run: |
-                make -j$(nproc)
+              run: make -j$(nproc)
 
             - name: TAR output
               run: tar -cvf gl-mt1300-images.tar bin/targets/ramips/mt7621/
@@ -108,5 +93,4 @@ jobs:
                 prerelease: false
                 title: "GL.iNet GL-MT1300 v24.10"
                 automatic_release_tag: "gl-mt1300-${{ env.NOW }}"
-                # auto_generate_release_notes: true
                 files: bin/targets/ramips/mt7621/*
