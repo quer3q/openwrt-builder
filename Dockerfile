@@ -6,7 +6,7 @@ RUN apt update -y && \
     unzip bzip2 wget python3 file rsync gawk xz-utils curl device-tree-compiler \
     fastjar flex gettext gperf haveged help2man intltool libelf-dev libssl-dev \
     libtool lrzsz mkisofs nano ninja-build p7zip patch pkgconf wget vim xxd \
-    software-properties-common
+    software-properties-common python3-pyelftools python3-setuptools swig python3-dev
 
 RUN add-apt-repository ppa:longsleep/golang-backports && \
     apt update && \
