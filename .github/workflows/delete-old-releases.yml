@@ -3,7 +3,7 @@ name: Cleanup old releases
 on:
   workflow_dispatch:  # Can run manually
   schedule:
-    - cron:  '21 21 * * *'
+    - cron:  '01 20 */2 * *'
 
 jobs:
     delete-old-releases:
@@ -13,7 +13,7 @@ jobs:
             - uses: sgpublic/delete-release-action@master
               with:
                 release-drop: true
-                release-keep-count: 4
+                release-keep-count: 9
                 release-drop-tag: true
                 pre-release-drop: true
                 pre-release-keep-count: 0
