@@ -1,4 +1,4 @@
-name: AX3000T (PW2)
+name: Xiaomi AX3000T (PW2)
 
 on:
   workflow_dispatch:  # Can run manually
