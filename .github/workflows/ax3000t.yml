@@ -38,7 +38,12 @@ jobs:
                 fastjar flex gettext gperf haveged help2man intltool libelf-dev libssl-dev \
                 libtool lrzsz mkisofs nano ninja-build p7zip patch pkgconf wget vim xxd \
                 software-properties-common
-            
+                
+            - name: Configure feeds
+              run: |
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a
+              
             - name: Generate config
               run: |
                 echo "CONFIG_TARGET_mediatek=y\n" > .config
