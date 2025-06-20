@@ -19,10 +19,14 @@ make -j$(nproc)
 ```
 cp bin/targets/ rom -r
 ```
+## Debug build process
+```
+make V=s 2>&1 | tee build.log | grep -i -E "^make.*(error|[12345]...Entering dir)"
+```
 ## Install passwall2
 ```
 echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
-echo "src-git imm https://github.com/immortalwrt/packages" >> feeds.conf.default
+echo "src-git imm https://github.com/immortalwrt/packages;branch-name" >> feeds.conf.default
 ./scripts/feeds update -a && \
 ./scripts/feeds install -a
 ```

@@ -48,7 +48,7 @@ jobs:
             
             - name: Configure feeds
               run: |
-                echo "src-git imm https://github.com/immortalwrt/packages" >> feeds.conf.default
+                echo "src-git imm https://github.com/immortalwrt/packages;openwrt-24.10" >> feeds.conf.default
                 echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
                 ./scripts/feeds update -a
                 ./scripts/feeds install -a
