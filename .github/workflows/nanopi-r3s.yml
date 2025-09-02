@@ -30,7 +30,6 @@ jobs:
                 
             - name: Install packages
               run: |
-                sudo apt update -y && \
                 sudo apt install -y \
                 make git gcc g++ ack autoconf automake autopoint binutils bison \
                 libncurses5-dev libncursesw5-dev build-essential bzip2 ccache cmake cpio \
@@ -38,7 +37,7 @@ jobs:
                 fastjar flex gettext gperf haveged help2man intltool libelf-dev libssl-dev \
                 libtool lrzsz mkisofs nano ninja-build p7zip patch pkgconf wget vim xxd \
                 software-properties-common python3-pyelftools python3-setuptools swig \
-                python3-dev
+                python3-dev libz-dev libffi-dev mercurial
 
             - name: Install Go
               run: |
