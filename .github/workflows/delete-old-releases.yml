@@ -1,4 +1,4 @@
-name: Cleanup old releases
+name: Cleanup Old Releases
 
 on:
   workflow_dispatch:  # Can run manually
@@ -7,7 +7,7 @@ on:
 
 jobs:
     delete-old-releases:
-        name: Delete old releases
+        name: Delete Old Releases
         runs-on: ubuntu-latest
         steps:
             - uses: sgpublic/delete-release-action@master

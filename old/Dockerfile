@@ -18,9 +18,9 @@ RUN useradd -m builder && \
 USER builder
 WORKDIR /home/builder
 
-RUN git clone -b openwrt-24.10 --depth 1 https://github.com/immortalwrt/immortalwrt && \
-    cd immortalwrt && \
+RUN git clone -b master --depth 1 https://github.com/openwrt/openwrt && \
+    cd openwrt && \
     ./scripts/feeds update -a && \
     ./scripts/feeds install -a
 
-WORKDIR /home/builder/immortalwrt
+WORKDIR /home/builder/openwrt

@@ -1,7 +1,9 @@
-name: Xiaomi AX3000T (PW2)
+name: Xiaomi AX3000T
 
 on:
   workflow_dispatch:  # Can run manually
+  schedule:
+    - cron:  '01 12 */20 * *'
 
 jobs:
     build:
@@ -37,29 +39,18 @@ jobs:
                 libtool lrzsz mkisofs nano ninja-build p7zip patch pkgconf wget vim xxd \
                 software-properties-common python3-pyelftools python3-setuptools swig \
                 python3-dev
-
-            - name: Install Go
-              run: |
-                sudo add-apt-repository ppa:longsleep/golang-backports && \
-                sudo apt update && \
-                sudo apt install -y golang-go
-            
+                
             - name: Configure feeds
               run: |
-                echo "src-git imm https://github.com/immortalwrt/packages;openwrt-24.10" >> feeds.conf.default
-                echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
                 ./scripts/feeds update -a
                 ./scripts/feeds install -a
-
+              
             - name: Generate config
               run: |
                 echo "CONFIG_TARGET_mediatek=y\n" > .config
                 echo "CONFIG_TARGET_mediatek_filogic=y\n" >> .config
                 echo "CONFIG_TARGET_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y\n" >> .config
-                echo "CONFIG_PACKAGE_dnsmasq=m\n" >> .config
-                echo "CONFIG_PACKAGE_dnsmasq-full=y\n" >> .config
                 echo "CONFIG_PACKAGE_luci=y\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2=y\n" >> .config
 
                 make defconfig
 
@@ -106,7 +97,6 @@ jobs:
               with:
                 repo_token: "${{ github.token }}"
                 prerelease: false
-                title: "Xiaomi AX3000T v24.10 (PW2)"
-                automatic_release_tag: "ax3000t_pw2-${{ env.NOW }}"
-                # auto_generate_release_notes: true
+                title: "Xiaomi AX3000T v24.10"
+                automatic_release_tag: "ax3000t-${{ env.NOW }}"
                 files: bin/targets/mediatek/filogic/*
