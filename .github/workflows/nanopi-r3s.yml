@@ -1,4 +1,4 @@
-name: NanoPI R3S (Test)
+name: NanoPI R3S
 
 on:
   workflow_dispatch:  # Can run manually
@@ -133,6 +133,6 @@ jobs:
               with:
                 repo_token: "${{ github.token }}"
                 prerelease: false
-                title: "NanoPI R3S v24.10"
+                title: "NanoPI R3S SNAPSHOT"
                 automatic_release_tag: "r3s-${{ env.NOW }}"
                 files: bin/targets/rockchip/armv8/*
