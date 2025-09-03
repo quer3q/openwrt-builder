@@ -46,6 +46,7 @@ jobs:
             
             - name: Configure Feeds
               run: |
+                echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
                 ./scripts/feeds update -a
                 ./scripts/feeds install -a
               
