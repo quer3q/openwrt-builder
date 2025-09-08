@@ -15,7 +15,7 @@ jobs:
               uses: actions/checkout@main
               with:
                 repository: 'openwrt/openwrt'
-                ref: 'main'
+                ref: 'openwrt-24.10'
                 
             - name: Free Disk Space
               uses: jlumbroso/free-disk-space@main
@@ -97,6 +97,6 @@ jobs:
               with:
                 repo_token: "${{ github.token }}"
                 prerelease: false
-                title: "Xiaomi AX3000T SNAPSHOT"
+                title: "Xiaomi AX3000T v24.10"
                 automatic_release_tag: "ax3000t-${{ env.NOW }}"
                 files: bin/targets/mediatek/filogic/*

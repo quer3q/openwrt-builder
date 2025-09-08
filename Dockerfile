@@ -18,6 +18,6 @@ RUN useradd -m builder && \
 USER builder
 WORKDIR /home/builder
 
-RUN git clone -b main --depth 1 https://github.com/openwrt/openwrt
+RUN git clone -b openwrt-24.10 --depth 1 https://github.com/openwrt/openwrt
 
 WORKDIR /home/builder/openwrt
