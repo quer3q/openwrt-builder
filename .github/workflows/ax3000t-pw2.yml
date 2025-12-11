@@ -13,7 +13,7 @@ jobs:
               uses: actions/checkout@main
               with:
                 repository: 'openwrt/openwrt'
-                ref: 'openwrt-24.10'
+                ref: 'openwrt-25.12'
                 
             - name: Free Disk Space
               uses: jlumbroso/free-disk-space@main
@@ -46,7 +46,7 @@ jobs:
             
             - name: Configure feeds
               run: |
-                echo "src-git imm https://github.com/immortalwrt/packages;openwrt-24.10" >> feeds.conf.default
+                echo "src-git imm https://github.com/immortalwrt/packages;openwrt-25.12" >> feeds.conf.default
                 echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
                 ./scripts/feeds update -a
                 ./scripts/feeds install -a
@@ -122,6 +122,6 @@ jobs:
               with:
                 repo_token: "${{ github.token }}"
                 prerelease: false
-                title: "Xiaomi AX3000T v24.10 (PW2)"
+                title: "Xiaomi AX3000T v25.12 (PW2)"
                 automatic_release_tag: "ax3000t-pw2-${{ env.NOW }}"
                 files: bin/targets/mediatek/filogic/*

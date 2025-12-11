@@ -15,7 +15,7 @@ jobs:
               uses: actions/checkout@main
               with:
                 repository: 'openwrt/openwrt'
-                ref: 'main'
+                ref: 'openwrt-25.12'
                 
             - name: Free disk space
               uses: jlumbroso/free-disk-space@main
@@ -47,7 +47,7 @@ jobs:
             
             - name: Configure feeds
               run: |
-                echo "src-git imm https://github.com/immortalwrt/packages" >> feeds.conf.default
+                echo "src-git imm https://github.com/immortalwrt/packages;openwrt-25.12" >> feeds.conf.default
                 echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
                 ./scripts/feeds update -a
                 ./scripts/feeds install -a
@@ -133,6 +133,6 @@ jobs:
               with:
                 repo_token: "${{ github.token }}"
                 prerelease: false
-                title: "NanoPI R3S SNAPSHOT"
+                title: "NanoPI R3S v25.12"
                 automatic_release_tag: "r3s-${{ env.NOW }}"
                 files: bin/targets/rockchip/armv8/*
