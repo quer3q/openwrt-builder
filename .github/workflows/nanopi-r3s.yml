@@ -2,8 +2,8 @@ name: NanoPI R3S
 
 on:
   workflow_dispatch:  # Can run manually
-  schedule:
-    - cron:  '01 15 */20 * *'
+  # schedule:
+  #   - cron:  '01 15 */20 * *'
 
 jobs:
     build:
@@ -39,18 +39,22 @@ jobs:
                 software-properties-common python3-pyelftools python3-setuptools swig \
                 python3-dev
 
-            - name: Install Go
-              run: |
-                sudo add-apt-repository ppa:longsleep/golang-backports && \
-                sudo apt update && \
-                sudo apt install -y golang-go
+            # - name: Install Go
+            #   run: |
+            #     sudo add-apt-repository ppa:longsleep/golang-backports && \
+            #     sudo apt update && \
+            #     sudo apt install -y golang-go
             
             - name: Configure feeds
               run: |
-                echo "src-git imm https://github.com/immortalwrt/packages;openwrt-25.12" >> feeds.conf.default
-                echo "src-git pw2 https://github.com/xiaorouji/openwrt-passwall2" >> feeds.conf.default
+                echo "src-git pw2 https://github.com/Openwrt-Passwall/openwrt-passwall2" >> feeds.conf.default
+                echo "src-git pw2pkg https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >> feeds.conf.default
                 ./scripts/feeds update -a
                 ./scripts/feeds install -a
+
+                echo "Temporal fix"
+                rm -rf feeds/packages/net/v2ray-geodata
+                git clone https://github.com/sbwml/v2ray-geodata package/v2ray-geodata
 
             - name: Generate target config
               run: |
