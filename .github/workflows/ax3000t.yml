@@ -1,4 +1,4 @@
-name: AX3000T AP
+name: AX3000T (AP)
 
 on:
   workflow_dispatch: {}

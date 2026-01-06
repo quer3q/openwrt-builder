@@ -1,117 +1,164 @@
-name: Xiaomi AX3000T (PW2)
+name: AX3000T (PW2)
 
 on:
-  workflow_dispatch:  # Can run manually
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ax3000t-pw2-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-    build:
-        name: Build
-        runs-on: ubuntu-latest
+  build:
+    name: Build
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@main
-              with:
-                repository: 'openwrt/openwrt'
-                ref: 'openwrt-25.12'
-                
-            - name: Free Disk Space
-              uses: jlumbroso/free-disk-space@main
-              with:
-                tool-cache: true
-                android: true
-                dotnet: true
-                haskell: true
-                large-packages: true
-                docker-images: true
-                swap-storage: true
-                
-            - name: Install packages
-              run: |
-                sudo apt install -y \
-                make git gcc g++ ack autoconf automake autopoint binutils bison \
-                libncurses5-dev libncursesw5-dev build-essential bzip2 ccache cmake cpio \
-                unzip wget python3 file rsync gawk xz-utils curl device-tree-compiler \
-                fastjar flex gettext gperf haveged help2man intltool libelf-dev libssl-dev \
-                libtool lrzsz mkisofs nano ninja-build p7zip patch pkgconf vim xxd \
-                software-properties-common python3-pyelftools python3-setuptools swig \
-                python3-dev && \
-                sudo apt autoremove -y && \
-                sudo apt clean
-                          
-            - name: Configure feeds
-              run: |
-                echo "src-git pw2 https://github.com/Openwrt-Passwall/openwrt-passwall2" >> feeds.conf.default
-                echo "src-git pw2pkg https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >> feeds.conf.default
-                ./scripts/feeds update -a
-                ./scripts/feeds install -a
+    steps:
+      - name: Checkout OpenWrt
+        uses: actions/checkout@v4
+        with:
+          repository: openwrt/openwrt
+          ref: openwrt-25.12
+          fetch-depth: 1
 
-                echo "Temporal fix for pw2 dependency"
-                rm -rf feeds/packages/net/v2ray-geodata
-                git clone https://github.com/sbwml/v2ray-geodata package/v2ray-geodata
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
-            - name: Generate config
-              run: |
-                echo "CONFIG_TARGET_mediatek=y\n" > .config
-                echo "CONFIG_TARGET_mediatek_filogic=y\n" >> .config
-                echo "CONFIG_TARGET_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y\n" >> .config
-                echo "CONFIG_PACKAGE_dnsmasq=m\n" >> .config
-                echo "CONFIG_PACKAGE_dnsmasq-full=y\n" >> .config
-                echo "CONFIG_PACKAGE_luci=y\n" >> .config
+      - name: Show disk usage (before)
+        run: df -h
 
-                echo "CONFIG_PACKAGE_luci-app-passwall2=y\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_Iptables_Transparent_Proxy=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_Nftables_Transparent_Proxy=y\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Haproxy=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Hysteria=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_NaiveProxy=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Libev_Client=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Libev_Server=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Client=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Server=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_ShadowsocksR_Libev_Client=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_ShadowsocksR_Libev_Server=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Simple_Obfs=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_SingBox=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_tuic_client=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_V2ray_Plugin=n\n" >> .config
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential clang flex bison g++ gawk gcc-multilib gettext \
+            git libncurses-dev libssl-dev python3 python3-setuptools python3-pyelftools \
+            rsync unzip zlib1g-dev file wget curl ccache \
+            device-tree-compiler xz-utils
+          sudo apt-get clean
 
-                make defconfig
+      - name: Cache downloads (dl/)
+        uses: actions/cache@v4
+        with:
+          path: dl
+          key: ${{ runner.os }}-openwrt-dl-${{ hashFiles('feeds.conf.default') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-openwrt-dl-${{ hashFiles('feeds.conf.default') }}-
+            ${{ runner.os }}-openwrt-dl-
 
-            - name: Build images
-              run: make -j$(nproc)
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-openwrt-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-openwrt-ccache-
 
-            - name: TAR output
-              run: tar -cvf ax3000t-images.tar bin/targets/mediatek/filogic/
+      - name: Configure feeds
+        run: |
+          echo "src-git pw2 https://github.com/Openwrt-Passwall/openwrt-passwall2" >> feeds.conf.default
+          echo "src-git pw2pkg https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >> feeds.conf.default
 
-            - name: Upload artifacts
-              uses: actions/upload-artifact@main
-              with:
-                name: ax3000t-images
-                path: ax3000t-images.tar
+          ./scripts/feeds update -a
 
-    release:
-          name: Make a release
-          runs-on: ubuntu-latest
-          needs: build
+          # Fix pw2 dependency: replace v2ray-geodata BEFORE feeds install (avoid stale/broken links)
+          rm -rf feeds/packages/net/v2ray-geodata
+          git clone --depth 1 https://github.com/sbwml/v2ray-geodata feeds/packages/net/v2ray-geodata
 
-          steps:
-            - name: Download artifacts
-              uses: actions/download-artifact@main
-              with:
-                name: ax3000t-images
+          ./scripts/feeds install -a
 
-            - name: Extract artifacts
-              run: tar xf ax3000t-images.tar
+      - name: Generate config
+        run: |
+          cat > .config <<'EOF'
+          CONFIG_TARGET_mediatek=y
+          CONFIG_TARGET_mediatek_filogic=y
+          CONFIG_TARGET_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y
 
-            - name: Get the current date
-              run: echo "NOW=$(date +%F)" >> $GITHUB_ENV
+          CONFIG_PACKAGE_dnsmasq=n
+          CONFIG_PACKAGE_dnsmasq-full=y
+          CONFIG_PACKAGE_luci=y
 
-            - name: Create a release
-              uses: "marvinpinto/action-automatic-releases@latest"
-              with:
-                repo_token: "${{ github.token }}"
-                prerelease: false
-                title: "Xiaomi AX3000T v25.12 (PW2)"
-                automatic_release_tag: "ax3000t-pw2-${{ env.NOW }}"
-                files: bin/targets/mediatek/filogic/*
+          CONFIG_PACKAGE_luci-app-passwall2=y
+          CONFIG_PACKAGE_luci-app-passwall2_Iptables_Transparent_Proxy=n
+          CONFIG_PACKAGE_luci-app-passwall2_Nftables_Transparent_Proxy=y
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Haproxy=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Hysteria=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_NaiveProxy=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Libev_Client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Libev_Server=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Server=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_ShadowsocksR_Libev_Client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_ShadowsocksR_Libev_Server=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Simple_Obfs=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_SingBox=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_tuic_client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_V2ray_Plugin=n
+          EOF
+
+          make defconfig
+
+          echo "===== .config (relevant, enabled only) ====="
+          egrep -v '^[[:space:]]*#' .config | egrep "^(CONFIG_TARGET_|CONFIG_PACKAGE_(luci|dnsmasq|dnsmasq-full|luci-app-passwall2)=)" || true
+
+      - name: Download sources
+        env:
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+        run: |
+          make download -j"$(nproc)" || make download -j1 V=s
+
+      - name: Build images
+        env:
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+        run: |
+          make -j"$(nproc)" || make -j1 V=s
+
+      - name: TAR output
+        run: tar -cvf ax3000t-images.tar bin/targets/mediatek/filogic/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ax3000t-images
+          path: ax3000t-images.tar
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Show disk usage (after)
+        run: df -h
+
+  release:
+    name: Make a release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ax3000t-images
+
+      - name: Extract artifacts
+        run: tar xf ax3000t-images.tar
+
+      - name: Get the current date
+        run: echo "NOW=$(date +%F)" >> "$GITHUB_ENV"
+
+      - name: Create a release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "ax3000t-pw2-${{ env.NOW }}"
+          name: "AX3000T v25.12 (PW2)"
+          prerelease: false
+          generate_release_notes: false
+          files: bin/targets/mediatek/filogic/*
