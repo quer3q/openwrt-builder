@@ -1,131 +1,179 @@
 name: NanoPI R3S
 
 on:
-  workflow_dispatch:  # Can run manually
+  workflow_dispatch: {}
   # schedule:
-  #   - cron:  '01 15 */20 * *'
+  #   - cron: "01 15 */20 * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nanopi-r3s-openwrt-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-    build:
-        name: Build
-        runs-on: ubuntu-latest
+  build:
+    name: Build
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@main
-              with:
-                repository: 'openwrt/openwrt'
-                ref: 'openwrt-25.12'
-                
-            - name: Free disk space
-              uses: jlumbroso/free-disk-space@main
-              with:
-                tool-cache: true
-                android: true
-                dotnet: true
-                haskell: true
-                large-packages: true
-                docker-images: true
-                swap-storage: true
-                
-            - name: Install apt packages
-              run: |
-                sudo apt install -y \
-                make git gcc g++ ack autoconf automake autopoint binutils bison \
-                libncurses5-dev libncursesw5-dev build-essential bzip2 ccache cmake cpio \
-                unzip wget python3 file rsync gawk xz-utils curl device-tree-compiler \
-                fastjar flex gettext gperf haveged help2man intltool libelf-dev libssl-dev \
-                libtool lrzsz mkisofs nano ninja-build p7zip patch pkgconf vim xxd \
-                software-properties-common python3-pyelftools python3-setuptools swig \
-                python3-dev && \
-                sudo apt autoremove -y && \
-                sudo apt clean
-            
-            - name: Configure feeds
-              run: |
-                echo "src-git pw2 https://github.com/Openwrt-Passwall/openwrt-passwall2" >> feeds.conf.default
-                echo "src-git pw2pkg https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >> feeds.conf.default
-                ./scripts/feeds update -a
-                ./scripts/feeds install -a
+    steps:
+      - name: Checkout OpenWrt
+        uses: actions/checkout@v4
+        with:
+          repository: openwrt/openwrt
+          ref: openwrt-25.12
+          fetch-depth: 1
 
-                echo "Temporal fix for pw2 dependency"
-                rm -rf feeds/packages/net/v2ray-geodata
-                git clone https://github.com/sbwml/v2ray-geodata package/v2ray-geodata
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
-            - name: Generate target config
-              run: |
-                echo "CONFIG_TARGET_rockchip=y\n" > .config
-                echo "CONFIG_TARGET_rockchip_armv8=y\n" >> .config
-                echo "CONFIG_TARGET_rockchip_armv8_DEVICE_friendlyarm_nanopi-r3s=y\n" >> .config
+      - name: Show disk usage (before)
+        run: df -h
 
-                echo "CONFIG_PACKAGE_dnsmasq=m\n" >> .config
-                echo "CONFIG_PACKAGE_dnsmasq-full=y\n" >> .config
-                echo "CONFIG_PACKAGE_luci=y\n" >> .config
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential clang flex bison g++ gawk gcc-multilib gettext \
+            git libncurses-dev libssl-dev python3 python3-distutils \
+            rsync unzip zlib1g-dev file wget curl ccache \
+            device-tree-compiler xz-utils
+          sudo apt-get clean
 
-                echo "CONFIG_PACKAGE_luci-app-passwall2=y\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_Iptables_Transparent_Proxy=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_Nftables_Transparent_Proxy=y\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Haproxy=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Hysteria=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_NaiveProxy=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Libev_Client=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Libev_Server=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Client=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Server=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_ShadowsocksR_Libev_Client=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_ShadowsocksR_Libev_Server=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Simple_Obfs=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_SingBox=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_tuic_client=n\n" >> .config
-                echo "CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_V2ray_Plugin=n\n" >> .config
+      - name: Cache downloads (dl/)
+        uses: actions/cache@v4
+        with:
+          path: dl
+          key: ${{ runner.os }}-openwrt-dl-${{ hashFiles('feeds.conf.default') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-openwrt-dl-${{ hashFiles('feeds.conf.default') }}-
+            ${{ runner.os }}-openwrt-dl-
 
-                echo "CONFIG_PACKAGE_adguardhome=y\n" >> .config
-                
-                echo "CONFIG_PACKAGE_parted=y\n" >> .config
-                echo "CONFIG_PACKAGE_losetup=y\n" >> .config
-                echo "CONFIG_PACKAGE_resize2fs=y\n" >> .config
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-openwrt-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-openwrt-ccache-
 
-                make defconfig
+      - name: Configure feeds
+        run: |
+          echo "src-git pw2 https://github.com/Openwrt-Passwall/openwrt-passwall2" >> feeds.conf.default
+          echo "src-git pw2pkg https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >> feeds.conf.default
 
-                sed -i 's/CONFIG_TARGET_KERNEL_PARTSIZE=16/CONFIG_TARGET_KERNEL_PARTSIZE=32/g' .config
-                sed -i 's/CONFIG_TARGET_ROOTFS_PARTSIZE=104/CONFIG_TARGET_ROOTFS_PARTSIZE=512/g' .config
+          ./scripts/feeds update -a
 
-            - name: Build images
-              run: make -j$(nproc)
+          # Fix pw2 dependency: replace v2ray-geodata BEFORE feeds install (avoid stale/broken links)
+          rm -rf feeds/packages/net/v2ray-geodata
+          git clone --depth 1 https://github.com/sbwml/v2ray-geodata feeds/packages/net/v2ray-geodata
 
-            - name: TAR output
-              run: tar -cvf nanopi-r3s-images.tar bin/targets/rockchip/armv8
+          # Install only what we need (plus pw2 packages feed)
+          ./scripts/feeds install -p pw2 luci-app-passwall2
+          ./scripts/feeds install -p pw2pkg -a
 
-            - name: Upload artifacts
-              uses: actions/upload-artifact@main
-              with:
-                name: nanopi-r3s-images
-                path: nanopi-r3s-images.tar
+      - name: Generate target config
+        run: |
+          cat > .config <<'EOF'
+          CONFIG_TARGET_rockchip=y
+          CONFIG_TARGET_rockchip_armv8=y
+          CONFIG_TARGET_rockchip_armv8_DEVICE_friendlyarm_nanopi-r3s=y
 
-    release:
-      name: Make a release
-      runs-on: ubuntu-latest
-      needs: build
-      permissions:
-        contents: write 
+          CONFIG_PACKAGE_dnsmasq=n
+          CONFIG_PACKAGE_dnsmasq-full=y
+          CONFIG_PACKAGE_luci=y
 
-      steps:
-        - name: Download artifacts
-          uses: actions/download-artifact@main
-          with:
-            name: nanopi-r3s-images
+          CONFIG_PACKAGE_luci-app-passwall2=y
+          CONFIG_PACKAGE_luci-app-passwall2_Iptables_Transparent_Proxy=n
+          CONFIG_PACKAGE_luci-app-passwall2_Nftables_Transparent_Proxy=y
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Haproxy=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Hysteria=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_NaiveProxy=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Libev_Client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Libev_Server=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Server=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_ShadowsocksR_Libev_Client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_ShadowsocksR_Libev_Server=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Simple_Obfs=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_SingBox=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_tuic_client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_V2ray_Plugin=n
 
-        - name: Extract artifacts
-          run: tar xf nanopi-r3s-images.tar
+          CONFIG_PACKAGE_adguardhome=y
 
-        - name: Get the current date
-          run: echo "NOW=$(date +%F)" >> $GITHUB_ENV
+          CONFIG_PACKAGE_parted=y
+          CONFIG_PACKAGE_losetup=y
+          CONFIG_PACKAGE_resize2fs=y
+          EOF
 
-        - name: Create a release
-          uses: softprops/action-gh-release@master
-          with:
-            tag_name: "r3s-${{ env.NOW }}"
-            name: "NanoPI R3S v25.12"
-            prerelease: false
-            files: bin/targets/rockchip/armv8/*
-            generate_release_notes: false
+          make defconfig
+
+          # Set partition sizes reliably (no fragile sed on defaults)
+          ./scripts/config set CONFIG_TARGET_KERNEL_PARTSIZE 32
+          ./scripts/config set CONFIG_TARGET_ROOTFS_PARTSIZE 512
+          make defconfig
+
+          echo "===== .config (relevant) ====="
+          egrep "CONFIG_TARGET_|CONFIG_PACKAGE_(luci|dnsmasq|dnsmasq-full|luci-app-passwall2|adguardhome)|CONFIG_TARGET_(KERNEL|ROOTFS)_PARTSIZE" .config || true
+
+      - name: Download sources
+        env:
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+        run: |
+          make download -j"$(nproc)" || make download -j1 V=s
+
+      - name: Build images
+        env:
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+        run: |
+          make -j"$(nproc)" || make -j1 V=s
+
+      - name: TAR output
+        run: tar -cvf nanopi-r3s-images.tar bin/targets/rockchip/armv8
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nanopi-r3s-images
+          path: nanopi-r3s-images.tar
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Show disk usage (after)
+        run: df -h
+
+  release:
+    name: Make a release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nanopi-r3s-images
+
+      - name: Extract artifacts
+        run: tar xf nanopi-r3s-images.tar
+
+      - name: Get the current date
+        run: echo "NOW=$(date +%F)" >> "$GITHUB_ENV"
+
+      - name: Create a release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "r3s-${{ env.NOW }}-${{ github.run_number }}"
+          name: "NanoPI R3S v25.12"
+          prerelease: false
+          files: bin/targets/rockchip/armv8/*
+          generate_release_notes: false
