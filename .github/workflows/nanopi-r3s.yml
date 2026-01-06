@@ -125,7 +125,7 @@ jobs:
           make defconfig
 
           echo "===== .config (relevant) ====="
-          egrep "CONFIG_TARGET_|CONFIG_PACKAGE_(luci|dnsmasq|dnsmasq-full|luci-app-passwall2|adguardhome)|CONFIG_TARGET_(KERNEL|ROOTFS)_PARTSIZE" .config || true
+          egrep -v '^[[:space:]]*#' .config | egrep "^(CONFIG_TARGET_|CONFIG_PACKAGE_(luci|dnsmasq|dnsmasq-full|luci-app-passwall2|adguardhome)=|CONFIG_TARGET_(KERNEL|ROOTFS)_PARTSIZE=)" || true
 
       - name: Download sources
         env:
