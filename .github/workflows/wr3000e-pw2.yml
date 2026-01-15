@@ -1,15 +1,13 @@
-name: AX3000T (AP)
+name: WR3000E (PW2)
 
 on:
   workflow_dispatch: {}
-  # schedule:
-  #   - cron: "01 12 */20 * *"
 
 permissions:
   contents: write
 
 concurrency:
-  group: ax3000t-ap-${{ github.ref }}
+  group: wr3000e-pw2-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -51,36 +49,50 @@ jobs:
 
       - name: Configure feeds
         run: |
+          echo "src-git pw2 https://github.com/Openwrt-Passwall/openwrt-passwall2" >> feeds.conf.default
+          echo "src-git pw2pkg https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >> feeds.conf.default
+
           ./scripts/feeds update -a
+
+          # Fix pw2 dependency: replace v2ray-geodata BEFORE feeds install (avoid stale/broken links)
+          rm -rf feeds/packages/net/v2ray-geodata
+          git clone --depth 1 https://github.com/sbwml/v2ray-geodata feeds/packages/net/v2ray-geodata
+
           ./scripts/feeds install -a
 
       - name: Generate config
         run: |
           cat > .config <<'EOF'
-          # Target Info
           CONFIG_TARGET_mediatek=y
           CONFIG_TARGET_mediatek_filogic=y
-          CONFIG_TARGET_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y
+          CONFIG_TARGET_mediatek_filogic_DEVICE_cudy_wr3000e-v1=y
 
-          # Interface & Offloading Requirements
+          CONFIG_PACKAGE_dnsmasq=n
+          CONFIG_PACKAGE_dnsmasq-full=y
           CONFIG_PACKAGE_luci=y
-          CONFIG_PACKAGE_bridger=y
-          CONFIG_PACKAGE_kmod-nft-offload=y
 
-          # EBPF Requirements for Bridger
-          CONFIG_PACKAGE_kmod-mt7915e=y
-          CONFIG_PACKAGE_bpftool=y
+          CONFIG_PACKAGE_luci-app-passwall2=y
+          CONFIG_PACKAGE_luci-app-passwall2_Iptables_Transparent_Proxy=n
+          CONFIG_PACKAGE_luci-app-passwall2_Nftables_Transparent_Proxy=y
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Haproxy=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Hysteria=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_NaiveProxy=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Libev_Client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Libev_Server=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Shadowsocks_Rust_Server=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_ShadowsocksR_Libev_Client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_ShadowsocksR_Libev_Server=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_Simple_Obfs=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_SingBox=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_tuic_client=n
+          CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_V2ray_Plugin=n
           EOF
 
           make defconfig
 
           echo "===== .config (relevant, enabled only) ====="
-          egrep -v '^[[:space:]]*#' .config | egrep "^(CONFIG_TARGET_|CONFIG_PACKAGE_(luci|bridger|kmod-nft-offload|kmod-mt7915e|bpftool)=)" || true
-
-      - name: Inject WED Configuration
-        run: |
-          mkdir -p files/etc/modules.d
-          echo "options mt7915e wed_enable=Y" > files/etc/modules.d/mt7915e
+          egrep -v '^[[:space:]]*#' .config | egrep "^(CONFIG_TARGET_|CONFIG_PACKAGE_(luci|dnsmasq|dnsmasq-full|luci-app-passwall2)=)" || true
 
       - name: Download sources
         run: |
@@ -91,13 +103,13 @@ jobs:
           make -j"$(nproc)" || make -j1 V=s
 
       - name: TAR output
-        run: tar -cvf ax3000t-images.tar bin/targets/mediatek/filogic/
+        run: tar -cvf wr3000e-images.tar bin/targets/mediatek/filogic/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ax3000t-images
-          path: ax3000t-images.tar
+          name: wr3000e-images
+          path: wr3000e-images.tar
           if-no-files-found: error
           retention-days: 14
 
@@ -113,10 +125,10 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ax3000t-images
+          name: wr3000e-images
 
       - name: Extract artifacts
-        run: tar xf ax3000t-images.tar
+        run: tar xf wr3000e-images.tar
 
       - name: Get the current date
         run: echo "NOW=$(date +%F)" >> "$GITHUB_ENV"
@@ -124,8 +136,8 @@ jobs:
       - name: Create a release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "ax3000t-ap-${{ env.NOW }}"
-          name: "AX3000T v25.12 (AP)"
+          tag_name: "wr3000e-pw2-${{ env.NOW }}"
+          name: "WR3000E v25.12 (PW2)"
           prerelease: false
           generate_release_notes: false
           files: bin/targets/mediatek/filogic/*
