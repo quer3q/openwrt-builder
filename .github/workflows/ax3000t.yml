@@ -1,4 +1,4 @@
-name: AX3000T (AP)
+name: AX3000T
 
 on:
   workflow_dispatch: {}
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: ax3000t-ap-${{ github.ref }}
+  group: ax3000t-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -62,25 +62,14 @@ jobs:
           CONFIG_TARGET_mediatek_filogic=y
           CONFIG_TARGET_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y
 
-          # Interface & Offloading Requirements
+          # Interface Requirements
           CONFIG_PACKAGE_luci=y
-          CONFIG_PACKAGE_bridger=y
-          CONFIG_PACKAGE_kmod-nft-offload=y
-
-          # EBPF Requirements for Bridger
-          CONFIG_PACKAGE_kmod-mt7915e=y
-          CONFIG_PACKAGE_bpftool=y
           EOF
 
           make defconfig
 
           echo "===== .config (relevant, enabled only) ====="
-          egrep -v '^[[:space:]]*#' .config | egrep "^(CONFIG_TARGET_|CONFIG_PACKAGE_(luci|bridger|kmod-nft-offload|kmod-mt7915e|bpftool)=)" || true
-
-      - name: Inject WED Configuration
-        run: |
-          mkdir -p files/etc/modules.d
-          echo "options mt7915e wed_enable=Y" > files/etc/modules.d/mt7915e
+          egrep -v '^[[:space:]]*#' .config | egrep "^(CONFIG_TARGET_|CONFIG_PACKAGE_luci=)" || true
 
       - name: Download sources
         run: |
@@ -124,8 +113,8 @@ jobs:
       - name: Create a release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "ax3000t-ap-${{ env.NOW }}"
-          name: "AX3000T v25.12 (AP)"
+          tag_name: "ax3000t-${{ env.NOW }}"
+          name: "AX3000T v25.12"
           prerelease: false
           generate_release_notes: false
           files: bin/targets/mediatek/filogic/*
