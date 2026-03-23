@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: openwrt/openwrt
-          ref: openwrt-25.12
+          ref: v25.12.1
           fetch-depth: 1
 
       - name: Free disk space
@@ -55,11 +55,6 @@ jobs:
           echo "src-git pw2pkg https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >> feeds.conf.default
 
           ./scripts/feeds update -a
-
-          # Fix pw2 dependency: replace v2ray-geodata BEFORE feeds install (avoid stale/broken links)
-          rm -rf feeds/packages/net/v2ray-geodata
-          git clone --depth 1 https://github.com/sbwml/v2ray-geodata feeds/packages/net/v2ray-geodata
-
           ./scripts/feeds install -a
 
       - name: Generate target config
@@ -153,7 +148,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "r3s-${{ env.NOW }}"
-          name: "NanoPI R3S v25.12"
+          name: "NanoPI R3S v25.12.1"
           prerelease: false
           files: bin/targets/rockchip/armv8/*
           generate_release_notes: false
