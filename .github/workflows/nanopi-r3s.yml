@@ -88,6 +88,11 @@ jobs:
           CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_tuic_client=n
           CONFIG_PACKAGE_luci-app-passwall2_INCLUDE_V2ray_Plugin=n
 
+          # ===== zapret2 kernel modules =====
+          CONFIG_PACKAGE_kmod-nft-queue=y
+          CONFIG_PACKAGE_kmod-nft-nat=y
+          CONFIG_PACKAGE_kmod-nft-offload=y
+
           # ===== Extras =====
           CONFIG_PACKAGE_adguardhome=y
 
