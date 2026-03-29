@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: openwrt/openwrt
-          ref: v25.12.1
+          ref: v25.12.2
           fetch-depth: 1
 
       - name: Free disk space
@@ -65,8 +65,6 @@ jobs:
           CONFIG_PACKAGE_dnsmasq=n
           CONFIG_PACKAGE_dnsmasq-full=y
           CONFIG_PACKAGE_luci=y
-          CONFIG_PACKAGE_luci-app-attendedsysupgrade=y
-
           CONFIG_PACKAGE_luci-app-passwall2=y
           CONFIG_PACKAGE_luci-app-passwall2_Iptables_Transparent_Proxy=n
           CONFIG_PACKAGE_luci-app-passwall2_Nftables_Transparent_Proxy=y
@@ -133,7 +131,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "ax3000t-pw2-${{ env.NOW }}"
-          name: "AX3000T v25.12.1 (PW2)"
+          name: "AX3000T v25.12.2 (PW2)"
           prerelease: false
           generate_release_notes: false
           files: bin/targets/mediatek/filogic/*

@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: openwrt/openwrt
-          ref: v25.12.1
+          ref: v25.12.2
           fetch-depth: 1
 
       - name: Free disk space
@@ -148,7 +148,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "r3s-${{ env.NOW }}"
-          name: "NanoPI R3S v25.12.1"
+          name: "NanoPI R3S v25.12.2"
           prerelease: false
           files: bin/targets/rockchip/armv8/*
           generate_release_notes: false
