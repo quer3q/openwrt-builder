@@ -68,7 +68,6 @@ jobs:
               -dnsmasq dnsmasq-full \
               luci \
               luci-app-passwall2 xray-core \
-              kmod-nft-queue kmod-nft-nat kmod-nft-offload \
               adguardhome \
               parted losetup resize2fs \
             "

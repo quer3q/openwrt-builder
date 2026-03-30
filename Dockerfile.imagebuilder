@@ -1,0 +1,52 @@
+FROM ubuntu:latest
+
+ENV OPENWRT_VERSION=25.12.2
+ENV PROFILE=friendlyarm_nanopi-r3s
+
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+    sudo make build-essential file libncurses-dev zlib1g-dev gawk git \
+    gettext libssl-dev xsltproc rsync wget unzip python3 zstd curl jq \
+    ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN useradd -m builder && \
+    echo 'builder ALL=NOPASSWD: ALL' > /etc/sudoers.d/builder
+
+USER builder
+WORKDIR /home/builder
+
+# Download Image Builder
+RUN wget -q "https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/rockchip/armv8/openwrt-imagebuilder-${OPENWRT_VERSION}-rockchip-armv8.Linux-x86_64.tar.zst" && \
+    tar --zstd -xf openwrt-imagebuilder-*.tar.zst && \
+    mv openwrt-imagebuilder-*/ imagebuilder/ && \
+    rm openwrt-imagebuilder-*.tar.zst
+
+# Download Passwall2 packages into the Image Builder's packages/ dir
+RUN API_URL="https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest" && \
+    PKG_URL=$(curl -s "$API_URL" | jq -r '.assets[] | select(.name | test("passwall_packages_apk_aarch64_generic")) | .browser_download_url') && \
+    LUCI_URL=$(curl -s "$API_URL" | jq -r '.assets[] | select(.name | test("luci-app-passwall2.*\\.apk$")) | .browser_download_url') && \
+    wget -q "$PKG_URL" -O passwall-packages.zip && \
+    wget -q -P imagebuilder/packages/ "$LUCI_URL" && \
+    unzip -o passwall-packages.zip -d /tmp/passwall-pkgs/ && \
+    find /tmp/passwall-pkgs/ -name '*.apk' -exec cp {} imagebuilder/packages/ \; && \
+    rm -rf passwall-packages.zip /tmp/passwall-pkgs/ && \
+    rm -f imagebuilder/packages/packages.adb
+
+WORKDIR /home/builder/imagebuilder
+
+# Configure partition sizes
+RUN sed -i 's/CONFIG_TARGET_KERNEL_PARTSIZE=.*/CONFIG_TARGET_KERNEL_PARTSIZE=32/' .config && \
+    sed -i 's/CONFIG_TARGET_ROOTFS_PARTSIZE=.*/CONFIG_TARGET_ROOTFS_PARTSIZE=512/' .config
+
+# Build image (packages.adb will be regenerated and signed automatically)
+RUN make image \
+    PROFILE="${PROFILE}" \
+    PACKAGES=" \
+      -dnsmasq dnsmasq-full \
+      luci \
+      luci-app-passwall2 xray-core \
+      adguardhome \
+      parted losetup resize2fs \
+    "
