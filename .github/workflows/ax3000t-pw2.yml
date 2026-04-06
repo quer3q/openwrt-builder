@@ -60,6 +60,7 @@ jobs:
               -dnsmasq dnsmasq-full \
               luci \
               luci-app-passwall2 xray-core \
+              kmod-nft-socket kmod-nft-tproxy \
             "
 
       - name: TAR output
