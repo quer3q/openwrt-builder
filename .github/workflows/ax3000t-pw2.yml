@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  OPENWRT_VERSION: "25.12.2"
+  OPENWRT_VERSION: "25.12.3"
   PROFILE: "xiaomi_mi-router-ax3000t"
 
 jobs:

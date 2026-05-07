@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: openwrt/openwrt
-          ref: v25.12.2
+          ref: v25.12.3
           fetch-depth: 1
 
       - name: Free disk space
@@ -131,7 +131,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "ax3000t-pw2-${{ env.NOW }}"
-          name: "AX3000T v25.12.2 (PW2)"
+          name: "AX3000T v25.12.3 (PW2)"
           prerelease: false
           generate_release_notes: false
           files: bin/targets/mediatek/filogic/*
