@@ -13,7 +13,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  OPENWRT_VERSION: "25.12.4"
   PROFILE: "friendlyarm_nanopi-r3s"
 
 jobs:
@@ -32,7 +31,7 @@ jobs:
 
       - name: Download Image Builder
         run: |
-          wget -q "https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/rockchip/armv8/openwrt-imagebuilder-${OPENWRT_VERSION}-rockchip-armv8.Linux-x86_64.tar.zst"
+          wget -q "https://downloads.openwrt.org/snapshots/targets/rockchip/armv8/openwrt-imagebuilder-rockchip-armv8.Linux-x86_64.tar.zst"
           tar --zstd -xf openwrt-imagebuilder-*.tar.zst
           mv openwrt-imagebuilder-*/ imagebuilder/
 
@@ -104,8 +103,8 @@ jobs:
       - name: Create a release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "r3s-${{ env.NOW }}"
-          name: "NanoPI R3S v${{ env.OPENWRT_VERSION }}"
-          prerelease: false
+          tag_name: "r3s-snapshot-${{ env.NOW }}"
+          name: "NanoPI R3S snapshot (${{ env.NOW }})"
+          prerelease: true
           files: imagebuilder/bin/targets/rockchip/armv8/*
           generate_release_notes: false
