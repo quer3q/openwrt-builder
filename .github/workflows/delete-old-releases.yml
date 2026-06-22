@@ -5,18 +5,25 @@ on:
   schedule:
     - cron:  '01 20 */2 * *'
 
+permissions:
+  contents: write
+
 jobs:
     delete-old-releases:
         name: Delete Old Releases
         runs-on: ubuntu-latest
         steps:
-            - uses: sgpublic/delete-release-action@master
-              with:
-                release-drop: true
-                release-keep-count: 9
-                release-drop-tag: true
-                pre-release-drop: true
-                pre-release-keep-count: 0
-                pre-release-drop-tag: true
+            - name: Delete old releases
               env:
-                GITHUB_TOKEN: ${{ github.token }}
+                GH_TOKEN: ${{ github.token }}
+                GH_REPO: ${{ github.repository }}
+              run: |
+                # Keep newest 10 stable releases, delete the rest (with tags)
+                gh release list --limit 1000 --json tagName,isPrerelease,createdAt \
+                  --jq 'map(select(.isPrerelease==false)) | sort_by(.createdAt) | reverse | .[10:] | .[].tagName' \
+                  | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done
+
+                # Keep newest 5 pre-releases (snapshots), delete the rest (with tags)
+                gh release list --limit 1000 --json tagName,isPrerelease,createdAt \
+                  --jq 'map(select(.isPrerelease==true)) | sort_by(.createdAt) | reverse | .[5:] | .[].tagName' \
+                  | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done
