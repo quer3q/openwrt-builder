@@ -1,29 +1,29 @@
 name: Cleanup Old Releases
 
 on:
-  workflow_dispatch:  # Can run manually
+  workflow_dispatch: # Can run manually
   schedule:
-    - cron:  '01 20 */2 * *'
+    - cron: "01 20 */2 * *"
 
 permissions:
   contents: write
 
 jobs:
-    delete-old-releases:
-        name: Delete Old Releases
-        runs-on: ubuntu-latest
-        steps:
-            - name: Delete old releases
-              env:
-                GH_TOKEN: ${{ github.token }}
-                GH_REPO: ${{ github.repository }}
-              run: |
-                # Keep newest 10 stable releases, delete the rest (with tags)
-                gh release list --limit 1000 --json tagName,isPrerelease,createdAt \
-                  --jq 'map(select(.isPrerelease==false)) | sort_by(.createdAt) | reverse | .[10:] | .[].tagName' \
-                  | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done
+  delete-old-releases:
+    name: Delete Old Releases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # Keep newest 10 stable releases, delete the rest (with tags)
+          gh release list --limit 1000 --json tagName,isPrerelease,createdAt \
+            --jq 'map(select(.isPrerelease==false)) | sort_by(.createdAt) | reverse | .[10:] | .[].tagName' \
+            | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done
 
-                # Keep newest 5 pre-releases (snapshots), delete the rest (with tags)
-                gh release list --limit 1000 --json tagName,isPrerelease,createdAt \
-                  --jq 'map(select(.isPrerelease==true)) | sort_by(.createdAt) | reverse | .[5:] | .[].tagName' \
-                  | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done
+          # Keep newest 5 pre-releases (snapshots), delete the rest (with tags)
+          gh release list --limit 1000 --json tagName,isPrerelease,createdAt \
+            --jq 'map(select(.isPrerelease==true)) | sort_by(.createdAt) | reverse | .[5:] | .[].tagName' \
+            | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done

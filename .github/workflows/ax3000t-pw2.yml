@@ -1,4 +1,4 @@
-name: AX3000T (PW2)
+name: Xiaomi AX3000T (PW2)
 
 on:
   workflow_dispatch: {}
@@ -95,7 +95,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "ax3000t-pw2-${{ env.NOW }}"
-          name: "AX3000T v${{ env.OPENWRT_VERSION }} (PW2)"
+          name: "Xiaomi AX3000T v${{ env.OPENWRT_VERSION }} (PW2)"
           prerelease: false
           files: imagebuilder/bin/targets/mediatek/filogic/*
           generate_release_notes: false

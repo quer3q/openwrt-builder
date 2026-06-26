@@ -1,4 +1,4 @@
-name: WR3000E
+name: Cudy WR3000E
 
 on:
   workflow_dispatch: {}
@@ -11,6 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  OPENWRT_VERSION: "25.12.4"
   PROFILE: "cudy_wr3000e-v1"
 
 jobs:
@@ -29,7 +30,7 @@ jobs:
 
       - name: Download Image Builder
         run: |
-          wget -q "https://downloads.openwrt.org/snapshots/targets/mediatek/filogic/openwrt-imagebuilder-mediatek-filogic.Linux-x86_64.tar.zst"
+          wget -q "https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/mediatek/filogic/openwrt-imagebuilder-${OPENWRT_VERSION}-mediatek-filogic.Linux-x86_64.tar.zst"
           tar --zstd -xf openwrt-imagebuilder-*.tar.zst
           mv openwrt-imagebuilder-*/ imagebuilder/
 
@@ -73,8 +74,8 @@ jobs:
       - name: Create a release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "wr3000e-snapshot-${{ env.NOW }}"
-          name: "WR3000E snapshot (${{ env.NOW }})"
-          prerelease: true
+          tag_name: "wr3000e-${{ env.NOW }}"
+          name: "Cudy WR3000E v${{ env.OPENWRT_VERSION }}"
+          prerelease: false
           generate_release_notes: false
           files: imagebuilder/bin/targets/mediatek/filogic/*
