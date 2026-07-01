@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 
-ENV OPENWRT_VERSION=25.12.2
+ENV OPENWRT_VERSION=25.12.5
 ENV PROFILE=friendlyarm_nanopi-r3s
 
 RUN apt-get update -y && \
