@@ -2,11 +2,12 @@ FROM ubuntu:latest
 
 ENV OPENWRT_VERSION=25.12.5
 ENV PROFILE=friendlyarm_nanopi-r3s
+ENV PASSWALL_ARCH=aarch64_generic
 
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
     sudo make build-essential file libncurses-dev zlib1g-dev gawk git \
-    gettext libssl-dev xsltproc rsync wget unzip python3 zstd curl jq \
+    gettext libssl-dev xsltproc rsync wget unzip python3 zstd \
     ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -23,16 +24,18 @@ RUN wget -q "https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/r
     mv openwrt-imagebuilder-*/ imagebuilder/ && \
     rm openwrt-imagebuilder-*.tar.zst
 
-# Download Passwall2 packages into the Image Builder's packages/ dir
-RUN API_URL="https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest" && \
-    PKG_URL=$(curl -s "$API_URL" | jq -r '.assets[] | select(.name | test("passwall_packages_apk_aarch64_generic")) | .browser_download_url') && \
-    LUCI_URL=$(curl -s "$API_URL" | jq -r '.assets[] | select(.name | test("luci-app-passwall2.*\\.apk$")) | .browser_download_url') && \
-    wget -q "$PKG_URL" -O passwall-packages.zip && \
-    wget -q -P imagebuilder/packages/ "$LUCI_URL" && \
-    unzip -o passwall-packages.zip -d /tmp/passwall-pkgs/ && \
-    find /tmp/passwall-pkgs/ -name '*.apk' -exec cp {} imagebuilder/packages/ \; && \
-    rm -rf passwall-packages.zip /tmp/passwall-pkgs/ && \
-    rm -f imagebuilder/packages/packages.adb
+# Add the Passwall2 apk feed: signing key + repositories for the build,
+# and the same into files/ so the router can update Passwall2 via `apk`.
+RUN RELEASE="${OPENWRT_VERSION%.*}" && \
+    BASE="https://sourceforge.net/projects/openwrt-passwall-build/files" && \
+    wget -q -O imagebuilder/keys/passwall.pem "${BASE}/apk.pub/download" && \
+    mkdir -p imagebuilder/files/etc/apk/keys imagebuilder/files/etc/apk/repositories.d && \
+    cp imagebuilder/keys/passwall.pem imagebuilder/files/etc/apk/keys/passwall.pem && \
+    for repo in passwall_packages passwall_luci passwall2; do \
+      echo "${BASE}/releases/packages-${RELEASE}/${PASSWALL_ARCH}/${repo}/packages.adb" \
+        | tee -a imagebuilder/repositories \
+                 imagebuilder/files/etc/apk/repositories.d/customfeeds.list > /dev/null; \
+    done
 
 WORKDIR /home/builder/imagebuilder
 
@@ -40,13 +43,14 @@ WORKDIR /home/builder/imagebuilder
 RUN sed -i 's/CONFIG_TARGET_KERNEL_PARTSIZE=.*/CONFIG_TARGET_KERNEL_PARTSIZE=32/' .config && \
     sed -i 's/CONFIG_TARGET_ROOTFS_PARTSIZE=.*/CONFIG_TARGET_ROOTFS_PARTSIZE=512/' .config
 
-# Build image (packages.adb will be regenerated and signed automatically)
 RUN make image \
     PROFILE="${PROFILE}" \
+    FILES="files" \
     PACKAGES=" \
       -dnsmasq dnsmasq-full \
       luci \
       luci-app-passwall2 xray-core \
+      kmod-nft-socket kmod-nft-tproxy \
       adguardhome \
       parted losetup resize2fs \
     "

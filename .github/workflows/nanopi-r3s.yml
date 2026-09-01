@@ -15,6 +15,7 @@ concurrency:
 env:
   OPENWRT_VERSION: "25.12.5"
   PROFILE: "friendlyarm_nanopi-r3s"
+  PASSWALL_ARCH: "aarch64_generic"
 
 jobs:
   build:
@@ -36,22 +37,22 @@ jobs:
           tar --zstd -xf openwrt-imagebuilder-*.tar.zst
           mv openwrt-imagebuilder-*/ imagebuilder/
 
-      - name: Download Passwall2 packages
+      - name: Add Passwall2 apk feed
         run: |
-          API_URL="https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest"
+          RELEASE="${OPENWRT_VERSION%.*}"
+          BASE="https://sourceforge.net/projects/openwrt-passwall-build/files"
 
-          PKG_URL=$(curl -s "$API_URL" | jq -r '.assets[] | select(.name | test("passwall_packages_apk_aarch64_generic")) | .browser_download_url')
-          wget -q "$PKG_URL" -O passwall-packages.zip
+          # Signing key: for the Image Builder, and for the router itself
+          wget -q -O imagebuilder/keys/passwall.pem "${BASE}/apk.pub/download"
+          mkdir -p imagebuilder/files/etc/apk/keys imagebuilder/files/etc/apk/repositories.d
+          cp imagebuilder/keys/passwall.pem imagebuilder/files/etc/apk/keys/passwall.pem
 
-          LUCI_URL=$(curl -s "$API_URL" | jq -r '.assets[] | select(.name | test("luci-app-passwall2.*\\.apk$")) | .browser_download_url')
-          wget -q -P imagebuilder/packages/ "$LUCI_URL"
-
-          # Extract all .apk files flat into packages/
-          unzip -o passwall-packages.zip -d /tmp/passwall-pkgs/
-          find /tmp/passwall-pkgs/ -name '*.apk' -exec cp {} imagebuilder/packages/ \;
-
-          # Remove stale index so make image regenerates it with all packages
-          rm -f imagebuilder/packages/packages.adb
+          # Feeds: resolve Passwall2 + deps at build time, and allow `apk` updates on the router
+          for repo in passwall_packages passwall_luci passwall2; do
+            echo "${BASE}/releases/packages-${RELEASE}/${PASSWALL_ARCH}/${repo}/packages.adb" \
+              | tee -a imagebuilder/repositories \
+                       imagebuilder/files/etc/apk/repositories.d/customfeeds.list > /dev/null
+          done
 
       - name: Configure partition sizes
         run: |
@@ -64,6 +65,7 @@ jobs:
           cd imagebuilder
           make image \
             PROFILE="${PROFILE}" \
+            FILES="files" \
             PACKAGES=" \
               -dnsmasq dnsmasq-full \
               luci \
