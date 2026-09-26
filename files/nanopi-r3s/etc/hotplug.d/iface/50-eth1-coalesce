@@ -1,0 +1,5 @@
+#!/bin/sh
+# LAN NIC (RTL8111H, fixed 256 rx ring): irq coalescing against rx_missed.
+# Runs on ifup because netifd reopening eth1 resets it; pause frames are in uci (rxpause/txpause).
+[ "$ACTION" = ifup ] && [ "$INTERFACE" = lan ] || exit 0
+ethtool -C eth1 rx-usecs 50 rx-frames 16

@@ -1,0 +1,16 @@
+#!/bin/sh
+# Packet steering on all CPUs + RFS, and pause frames on the LAN NIC (eth1).
+# Idempotent: uci-defaults re-run after every sysupgrade.
+uci set network.globals.packet_steering='2'
+uci set network.globals.steering_flows='128'
+
+sec=$(uci show network | sed -n "s/^network\.\([^.]*\)\.name='eth1'$/\1/p" | head -n1)
+if [ -z "$sec" ]; then
+	sec=$(uci add network device)
+	uci set network."$sec".name='eth1'
+fi
+uci set network."$sec".rxpause='1'
+uci set network."$sec".txpause='1'
+
+uci commit network
+exit 0

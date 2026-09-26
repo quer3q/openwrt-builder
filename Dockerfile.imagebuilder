@@ -43,6 +43,9 @@ WORKDIR /home/builder/imagebuilder
 RUN sed -i 's/CONFIG_TARGET_KERNEL_PARTSIZE=.*/CONFIG_TARGET_KERNEL_PARTSIZE=32/' .config && \
     sed -i 's/CONFIG_TARGET_ROOTFS_PARTSIZE=.*/CONFIG_TARGET_ROOTFS_PARTSIZE=512/' .config
 
+# Tuning overlay: sysctl, eth1 coalescing hotplug, packet steering + pause frames uci-defaults
+COPY --chown=builder:builder files/nanopi-r3s/ files/
+
 RUN make image \
     PROFILE="${PROFILE}" \
     FILES="files" \
@@ -53,4 +56,5 @@ RUN make image \
       kmod-nft-socket kmod-nft-tproxy \
       adguardhome \
       parted losetup resize2fs \
+      ethtool kmod-tcp-bbr \
     "

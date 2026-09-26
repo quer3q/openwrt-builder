@@ -23,6 +23,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -54,6 +57,9 @@ jobs:
                        imagebuilder/files/etc/apk/repositories.d/customfeeds.list > /dev/null
           done
 
+      - name: Add ROM overlay files
+        run: cp -r files/nanopi-r3s/. imagebuilder/files/
+
       - name: Configure partition sizes
         run: |
           cd imagebuilder
@@ -73,6 +79,7 @@ jobs:
               kmod-nft-socket kmod-nft-tproxy \
               adguardhome \
               parted losetup resize2fs \
+              ethtool kmod-tcp-bbr \
             "
 
       - name: TAR output
