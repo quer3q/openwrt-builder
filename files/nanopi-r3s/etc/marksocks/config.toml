@@ -1,0 +1,7 @@
+# passwall2 "Zapret" node: socks 127.0.0.1:10801 -> direct out.
+# mark 0x080000FF: 0x08000000 is zapret2 FILTER_MARK, the 0xFF bits make passwall2 treat
+# it as its own traffic (no re-capture). dns = AdGuard, not resolv.conf (FakeDNS 198.18.x).
+listen = "127.0.0.1:10801"
+log_level = "warn"
+mark = 0x080000FF
+dns = "127.0.0.1:5353"

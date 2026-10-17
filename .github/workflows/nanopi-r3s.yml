@@ -57,6 +57,17 @@ jobs:
                        imagebuilder/files/etc/apk/repositories.d/customfeeds.list > /dev/null
           done
 
+      - name: Add zapret2 + marksocks apk feeds
+        run: |
+          Z="https://github.com/quer3q/zapret2-openwrt/releases/latest/download"
+          M="https://github.com/quer3q/marksocks/releases/latest/download"
+          wget -q -O imagebuilder/keys/zapret2.pem "${Z}/zapret2.pem"
+          wget -q -O imagebuilder/keys/marksocks.pem "${M}/marksocks.pem"
+          cp imagebuilder/keys/zapret2.pem imagebuilder/keys/marksocks.pem imagebuilder/files/etc/apk/keys/
+          printf '%s\n' "${Z}/packages-${PASSWALL_ARCH}.adb" "${M}/packages.adb" \
+            | tee -a imagebuilder/repositories \
+                     imagebuilder/files/etc/apk/repositories.d/customfeeds.list > /dev/null
+
       - name: Add ROM overlay files
         run: cp -r files/nanopi-r3s/. imagebuilder/files/
 
@@ -80,6 +91,7 @@ jobs:
               adguardhome \
               parted losetup resize2fs \
               ethtool kmod-tcp-bbr \
+              zapret2 marksocks \
             "
 
       - name: TAR output

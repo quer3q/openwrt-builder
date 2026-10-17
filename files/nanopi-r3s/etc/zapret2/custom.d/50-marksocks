@@ -1,0 +1,18 @@
+# Queue only marksocks (zapret node) traffic to the standard nfqws2 ($QNUM).
+# Out: the post hook jump (postnat_hook in upstream's default POSTNAT mode) already requires FILTER_MARK;
+#      tag the conntrack here.
+# In:  replies carry no skb mark, so match the ct mark set on the way out.
+# Nothing forwarded is queued, so fw4 flow offloading is unaffected.
+
+zapret_custom_firewall_nft()
+{
+	# FW_EXTRA_POST is spliced right before "queue"; counters make `nft list table inet zapret2` a health check
+	local FW_EXTRA_POST="ct mark set ct mark or $FILTER_MARK counter"
+	local reply="ct mark and $FILTER_MARK != 0"
+
+	nft_fw_nfqws_post "tcp dport {80,443} $(nft_first_packets $NFQWS2_TCP_PKT_OUT)" "" $QNUM
+	nft_fw_nfqws_post "udp dport 443 $(nft_first_packets $NFQWS2_UDP_PKT_OUT)" "" $QNUM
+	FW_EXTRA_POST=counter
+	nft_fw_nfqws_pre "$reply tcp sport {80,443} ct reply packets 1-$NFQWS2_TCP_PKT_IN" "" $QNUM
+	nft_fw_nfqws_pre "$reply udp sport 443 ct reply packets 1-$NFQWS2_UDP_PKT_IN" "" $QNUM
+}

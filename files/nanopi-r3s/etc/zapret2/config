@@ -1,0 +1,31 @@
+# Local zapret2 settings (kept across sysupgrade). Upstream defaults first, then overrides.
+# Strategy: NFQWS2_OPT below; re-test after ISP/DPI changes (TLS 1.2 and 1.3, see AGENT.md), then restart zapret2.
+. /opt/zapret2/config.default
+
+NFQWS2_ENABLE=1
+# No stock queue rules: they filter outgoing packets by FILTER_MARK but queue ALL incoming WAN replies.
+# custom.d/50-marksocks queues only marksocks traffic in both directions.
+NFQWS2_PORTS_TCP=
+NFQWS2_PORTS_UDP=
+NFQWS2_PORTS_TCP_KEEPALIVE=
+NFQWS2_PORTS_UDP_KEEPALIVE=
+# Set by marksocks (mark = 0x080000FF in /etc/marksocks/config.toml). Upstream's DESYNC_MARK default 0x40000000 (and a
+# 0x10000000 filter) overlap passwall2's mark 0x50535732; every zapret bit must be disjoint from it.
+FILTER_MARK=0x08000000
+DESYNC_MARK=0x04000000
+MODE_FILTER=none
+# fw4 flow offloading stays on: the zapret path is router-originated, never forwarded
+FLOWOFFLOAD=donttouch
+# Upstream's default adds an unscoped "icmp time-exceeded ct state invalid drop" (all traffic); it only
+# matters for TTL-limited fakes, which the strategy below doesn't use
+FILTER_TTL_EXPIRED_ICMP=0
+DISABLE_IPV6=1
+# Upstream default, except TLS (2026-09-28, see AGENT.md; the default fake+multidisorder got 0/3):
+# - multisplit+seqovl at host+1,midsld,endhost-1: pos=1,midsld alone failed youtubei.googleapis.com (TV apps).
+# - wssize on SYN+ClientHello (hence l7 tls,unknown): TLS 1.2 clients (the TV) get the server cert in
+#   plaintext and the DPI drops youtube/googlevideo replies; a tiny window fragments it. TLS 1.2+1.3 12/12.
+NFQWS2_OPT="
+--filter-tcp=80 --filter-l7=http --payload=http_req --lua-desync=fake:blob=fake_default_http:tcp_md5 --lua-desync=multisplit:pos=method+2 --new
+--filter-tcp=443 --filter-l7=tls,unknown --payload=empty,tls_client_hello --lua-desync=wssize:wsize=1:scale=6 --payload=tls_client_hello --lua-desync=multisplit:pos=1,host+1,midsld,endhost-1:seqovl=1 --new
+--filter-udp=443 --filter-l7=quic --payload=quic_initial --lua-desync=fake:blob=fake_default_quic:repeats=6
+"

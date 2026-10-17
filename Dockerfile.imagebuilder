@@ -37,13 +37,24 @@ RUN RELEASE="${OPENWRT_VERSION%.*}" && \
                  imagebuilder/files/etc/apk/repositories.d/customfeeds.list > /dev/null; \
     done
 
+# zapret2 + marksocks apk feeds, same as Passwall2
+RUN Z="https://github.com/quer3q/zapret2-openwrt/releases/latest/download" && \
+    M="https://github.com/quer3q/marksocks/releases/latest/download" && \
+    wget -q -O imagebuilder/keys/zapret2.pem "${Z}/zapret2.pem" && \
+    wget -q -O imagebuilder/keys/marksocks.pem "${M}/marksocks.pem" && \
+    cp imagebuilder/keys/zapret2.pem imagebuilder/keys/marksocks.pem imagebuilder/files/etc/apk/keys/ && \
+    printf '%s\n' "${Z}/packages-${PASSWALL_ARCH}.adb" "${M}/packages.adb" \
+      | tee -a imagebuilder/repositories \
+               imagebuilder/files/etc/apk/repositories.d/customfeeds.list > /dev/null
+
 WORKDIR /home/builder/imagebuilder
 
 # Configure partition sizes
 RUN sed -i 's/CONFIG_TARGET_KERNEL_PARTSIZE=.*/CONFIG_TARGET_KERNEL_PARTSIZE=32/' .config && \
     sed -i 's/CONFIG_TARGET_ROOTFS_PARTSIZE=.*/CONFIG_TARGET_ROOTFS_PARTSIZE=512/' .config
 
-# Tuning overlay: sysctl, eth1 coalescing hotplug, packet steering + pause frames uci-defaults
+# Tuning overlay: sysctl, eth1 coalescing hotplug, packet steering + pause frames uci-defaults,
+# zapret2 + marksocks configs
 COPY --chown=builder:builder files/nanopi-r3s/ files/
 
 RUN make image \
@@ -57,4 +68,5 @@ RUN make image \
       adguardhome \
       parted losetup resize2fs \
       ethtool kmod-tcp-bbr \
+      zapret2 marksocks \
     "
