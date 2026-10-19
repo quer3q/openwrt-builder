@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  OPENWRT_VERSION: "25.12.5"
+  OPENWRT_VERSION: "25.12.6"
   PROFILE: "friendlyarm_nanopi-r3s"
   PASSWALL_ARCH: "aarch64_generic"
 

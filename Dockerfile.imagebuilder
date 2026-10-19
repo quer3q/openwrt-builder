@@ -1,6 +1,6 @@
-FROM ubuntu:latest
+FROM ubuntu:24.04
 
-ENV OPENWRT_VERSION=25.12.5
+ENV OPENWRT_VERSION=25.12.6
 ENV PROFILE=friendlyarm_nanopi-r3s
 ENV PASSWALL_ARCH=aarch64_generic
 

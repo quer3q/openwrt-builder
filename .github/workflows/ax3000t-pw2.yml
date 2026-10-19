@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  OPENWRT_VERSION: "25.12.5"
+  OPENWRT_VERSION: "25.12.6"
   PROFILE: "xiaomi_mi-router-ax3000t"
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
         run: |
           API_URL="https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest"
 
-          PKG_URL=$(curl -s "$API_URL" | jq -r '.assets[] | select(.name | test("passwall_packages_apk_aarch64_cortex-a53")) | .browser_download_url')
+          PKG_URL=$(curl -s "$API_URL" | jq -r '.assets[] | select(.name | test("packages_apk_aarch64_cortex-a53")) | .browser_download_url')
           wget -q "$PKG_URL" -O passwall-packages.zip
 
           LUCI_URL=$(curl -s "$API_URL" | jq -r '.assets[] | select(.name | test("luci-app-passwall2.*\\.apk$")) | .browser_download_url')
