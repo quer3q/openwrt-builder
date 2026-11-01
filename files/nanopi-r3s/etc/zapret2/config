@@ -24,8 +24,11 @@ DISABLE_IPV6=1
 # - multisplit+seqovl at host+1,midsld,endhost-1: pos=1,midsld alone failed youtubei.googleapis.com (TV apps).
 # - wssize on SYN+ClientHello (hence l7 tls,unknown): TLS 1.2 clients (the TV) get the server cert in
 #   plaintext and the DPI drops youtube/googlevideo replies; a tiny window fragments it. TLS 1.2+1.3 12/12.
+# - QUIC (2026-11-01): the fake_default_quic fake got googlevideo 0/12 (browsers stalled on the QUIC
+#   timeout before falling back to TCP); a real www.google.com Initial as the fake gets 12/12.
 NFQWS2_OPT="
+--blob=quic_google:@/opt/zapret2/files/fake/quic_initial_www_google_com.bin
 --filter-tcp=80 --filter-l7=http --payload=http_req --lua-desync=fake:blob=fake_default_http:tcp_md5 --lua-desync=multisplit:pos=method+2 --new
 --filter-tcp=443 --filter-l7=tls,unknown --payload=empty,tls_client_hello --lua-desync=wssize:wsize=1:scale=6 --payload=tls_client_hello --lua-desync=multisplit:pos=1,host+1,midsld,endhost-1:seqovl=1 --new
---filter-udp=443 --filter-l7=quic --payload=quic_initial --lua-desync=fake:blob=fake_default_quic:repeats=6
+--filter-udp=443 --filter-l7=quic --payload=quic_initial --lua-desync=fake:blob=quic_google:repeats=6
 "
